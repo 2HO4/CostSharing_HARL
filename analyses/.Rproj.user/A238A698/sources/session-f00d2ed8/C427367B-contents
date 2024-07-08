@@ -1,0 +1,861 @@
+---
+title: "Demand Analysis and Forecasting"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+# START ----
+.Packages <- 'tidyverse, readxl, tseries, forecast'; {
+    .Packages <- strsplit(.Packages, ', ')[[1]]
+    
+    .curScript <- rstudioapi::getSourceEditorContext()$path
+    
+    .inactive <- function() {
+        if (exists('.active'))
+            if (.active == .curScript)
+                return (FALSE)
+        return (TRUE)
+    }
+    
+    .include <- function(p) {
+        if (!is.element(p, rownames(installed.packages())))
+            install.packages(p, quiet=TRUE)
+        .nOldPackages <- length(.packages())
+        suppressPackageStartupMessages(require(p, quietly=TRUE, character.only=TRUE))
+        return (.packages()[1:(length(.packages()) - .nOldPackages)])
+    }
+    
+    .exclude <- function(packages)
+        lapply(paste0('package:', packages), function(p)
+            suppressWarnings(detach(p, character.only=TRUE, unload=TRUE)))
+    
+    if (.inactive()) {
+        .prvDirectory <- getwd()
+        if (exists('.allPackages')) {
+            if (length(.prvPackages <- names(.allPackages)))
+                .exclude(unlist(.allPackages))
+        } else if (length(.packages()) > 7) {
+            .exclude(.prvPackages <- .packages()[1:(length(.packages()) - 7)])
+        } else
+            .prvPackages <- c()
+        .prvOs <- setdiff(objects(all.names=TRUE), c('.Packages', '.curScript', '.inactive', '.include', '.exclude'))
+        save(list=.prvOs, file='~/R/.prvEnvironment.RData', envir=.GlobalEnv)
+        rm(list=.prvOs)
+        .active <- .curScript
+        .allPackages <- sapply(.Packages, .include, simplify=FALSE)
+    }
+    
+    .curDirectory <- ''
+    
+    if (.curDirectory == '') 
+        .curDirectory <- dirname(.curScript)
+    
+    setwd(ifelse(.curDirectory == '', '~', .curDirectory))
+    
+    .oldPackages <- setdiff(names(.allPackages), .Packages)
+    
+    for (p in .oldPackages) {
+        .exclude(.allPackages[[p]])
+        .allPackages[[p]] <- NULL
+    }
+    
+    .newPackages <- setdiff(.Packages, names(.allPackages))
+    
+    for (p in .newPackages)
+        .allPackages[[p]] <- .include(p)
+    
+    rm(p)
+    cat('\nCurrent File: ', ifelse(.active!='', .active, 'unsaved'), '\n\n', sep='')
+}
+
+```
+
+```{r}
+# EXECUTION ----
+THEME <- theme_light() + theme(
+    plot.title=element_text(color='black', size=10, face='bold', hjust=.5), 
+    axis.title=element_text(color='black',size=9, face=1), 
+    # aspect.ratio=1, 
+    text=element_text(family='serif'),
+    # legend.key.size=unit(2, 'cm'), 
+    legend.title=element_text(size=9), 
+    legend.text=element_text(size=9)
+)
+
+seed <- 1
+set.seed(seed)
+
+```
+
+```{r}
+# Load the weekly supply of petroleum data in the U.S. (./data/USWeeklyProductSupplied.xlsx)
+
+data <- read_excel("../data/USWeeklyProductSupplied.xlsx", sheet="Data 1", col_names=c("Date", "n_barrels_total", "n_barrels_motorgasoline"), range="A17:C1755") %>% select(Date, n_barrels_motorgasoline)
+
+# Display the first 6 rows of the data
+head(data)
+
+```
+
+```{r}
+# Build a time series model from the data to predict the demand. 
+# The data:
+# - Measures the disappearance of petroleum products from primary sources
+# - Approximately represents consumption of petroleum products
+# - Is weekly and starts from Feb 8 1991 and ends on May 31 2024
+
+# Convert the data to a time series object
+data_ts <- ts(data$n_barrels_motorgasoline*7, start=c(1991, 6), frequency=52)
+
+# Plot the time series data
+plot(data_ts, main="Weekly Consumption of Finished Motor Gasoline in the U.S.", xlab="Year", ylab="Number of Barrels")
+
+```
+
+```{r}
+d <- data_ts %>% stl(s.window="periodic") %>% seasadj()
+p <- autoplot(d, xlab="Year", ylab="U.S. weekly motor gasoline consumption (thou. barrels)") + THEME + theme(aspect.ratio=0.5)
+
+ggsave("./seasonally_adjusted_weekly_motor_gasoline_consumption.png", p, width=7.64, height=3, units='in', dpi=300)
+
+p
+
+```
+
+```{r}
+d %>% diff() %>% ggtsdisplay(main="", theme=THEME)
+
+```
+
+```{r}
+# Check for stationarity of the time series data
+
+# Augmented Dickey-Fuller test
+adf_test <- adf.test(data_ts, alternative="stationary")
+
+# Display the results of the Augmented Dickey-Fuller test
+adf_test
+
+```
+
+
+```{r}
+# Autocorrelations of the demand data
+autocorrelations <- acf(data_ts, plot=FALSE, na.action = na.pass)
+
+# Plot the autocorrelation of log-returns
+plot(autocorrelations, main = "Autocorrelation of Demand Data", family="serif", col="blue")
+
+```
+
+```{r}
+# Decompose the time series data to identify the trend, seasonal, and random components
+
+data_decomposed <- decompose(data_ts)
+
+# Plot the decomposed time series data
+par(mar=c(4, 4, 0.2, 0.2))
+plot(data_decomposed, family='serif')
+
+
+```
+
+```{r}
+# Check residuals of the time series data
+checkresiduals(data_ts, theme=THEME)
+
+```
+
+```{r}
+# Build a time series model from the data to predict the demand
+
+# Fit an ARIMA model to the time series data
+arima_model <- auto.arima(data_ts)
+
+# Display the ARIMA model
+arima_model
+
+```
+
+```{r}
+# Save the ARIMA model of demand
+saveRDS(arima_model, file = "./models/model_demand.rds")
+
+```
+
+Series: data_ts 
+ARIMA(1,1,2)(0,0,2)[52] with drift 
+
+Coefficients:
+         ar1      ma1     ma2    sma1    sma2   drift
+      0.8976  -1.4879  0.4957  0.1343  0.1327  0.9813
+s.e.  0.0182   0.0310  0.0297  0.0245  0.0242  0.7219
+
+sigma^2 = 93979:  log likelihood = -12415.72
+AIC=24845.45   AICc=24845.51   BIC=24883.67
+
+The best fitted ARIMA model is ARIMA(1,1,2)(0,0,2)[52] with drift. This means that:
+- The model has a first-order autoregressive component (AR1)
+- The model has a first-order moving average component (MA1)
+- The model has a second-order moving average component (MA2)
+- The model has a seasonal moving average component (SMA1)
+- The model has a seasonal moving average component (SMA2)
+- The model has a drift component
+
+The formula for the ARIMA model is:
+Y_t = 0.9813 + 0.8976 * Y_{t-1} - 1.4879 * e_{t-1} + 0.4957 * e_{t-2} + 0.1343 * e_{t-52} + 0.1327 * e_{t-104} + e_t
+
+where:
+- Y_t is the demand at time t
+- e_t is the error at time t
+
+The model has a log likelihood of -12415.72, AIC of 24845.45, AICc of 24845.51, and BIC of 24883.67.
+
+```{r}
+# Load the ARIMA model of demand to predict the demand
+
+# Load the ARIMA model of demand
+model_demand <- readRDS("./models/model_demand.rds")
+
+# Predict the demand until 2100
+forecast_demand <- forecast(model_demand, h=3944)  # 01/01/2100 - 31/05/2024 = 27608 days = 3944 weeks
+# forecast_demand$x <- forecast_demand$x*7
+# forecast_demand$mean <- forecast_demand$mean*7
+# forecast_demand$upper <- forecast_demand$upper*7
+# forecast_demand$lower <- forecast_demand$lower*7
+
+# Plot the forecasted demand
+par(mar=c(4, 4, 0.2, 0.2))
+plot(forecast_demand, main="", xlab="Weeks", ylab="Demand of petroleum products (thou. barrels)", family='serif', ylim=c(20000, 120000))
+grid(lty=1)
+
+# Save the forecasted demand as a csv file
+# write.csv(forecast_demand, file="../forecasts/forecast_demand_deterministic.csv")
+
+```
+
+```{r}
+# Sequentially update the ARIMA model
+
+# Copy of data_ts and arima_model
+data_ts_copy <- data_ts
+arima_model_copy <- arima_model
+forecast_demand_copy <- forecast_demand
+forecast_demand_mean <- numeric(length=3944)
+forecast_demand_upper <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+forecast_demand_lower <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+
+# Function to estimate standard deviation from 95% confidence interval
+estimate_standard_deviation <- function(lower, upper) {
+    #              MOE       /  Z
+    return ((upper - lower)/2/4.128)
+}
+
+for (i in 1:3944) {
+    # Forecast the demand for the next week
+    next_week_demand <- forecast(arima_model_copy, h=1)
+    
+    # Calculate the standard deviation
+    standard_deviation <- estimate_standard_deviation(next_week_demand$lower[2], next_week_demand$upper[2])
+    
+    # Calculate the deviation from the mean
+    deviation <- rnorm(1, 0, standard_deviation)
+    
+    # Generate a random demand value
+    forecast_demand_mean[i] <- floor(next_week_demand$mean + rnorm(1, 0, standard_deviation))
+    forecast_demand_upper[i,] <- next_week_demand$upper[1,]
+    forecast_demand_lower[i,] <- next_week_demand$lower[1,]
+    
+    # Add the new demand value to the time series
+    data_ts_copy <- ts(c(data_ts_copy, forecast_demand_mean[i]), start=c(1991, 6), frequency=52)
+    
+    # Fit an ARIMA model to the updated time series
+    arima_model_copy <- arima(
+        data_ts_copy, 
+        order=c(1, 1, 2),
+        include.mean=TRUE
+    )
+}
+
+forecast_demand_copy$mean <- ts(forecast_demand_mean, start=c(2024, 29), frequency=52)
+forecast_demand_copy$upper <- ts(forecast_demand_upper, start=c(2024, 29), frequency=52)
+forecast_demand_copy$lower <- ts(forecast_demand_lower, start=c(2024, 29), frequency=52)
+
+forecast_demand_copy
+
+```
+
+```{r}
+# Plot the forecasted demand
+plot(forecast_demand_copy, main="Forecasted Demand of Petroleum Products", xlab="Weeks", ylab="Demand (in 1000 barrels)")
+
+```
+
+```{r}
+# Save the predicted demand as a csv file
+write.csv(forecast_demand_copy, file="./forecasts/forecast_demand_noshock.csv")
+
+```
+
+```{r}
+# Load data/probabilities_events.csv. This file contains the probabilities of possible events occurring in the months. First rows are column names of the months, first column is the event names.
+
+probabilities_events <- read.csv("../data/probabilities_events.csv", row.names=1)
+
+# Display the first 6 rows of the data
+probabilities_events
+
+```
+
+
+```{r}
+
+# Convert the probabilities_events into table of weekly probabilities. 
+# Months are divided into 12 months, for instance, January is 1/12 = 0.0833, February is 2/12 = 0.1667, etc. 
+# Weeks are divided into 52 weeks, for instance, week 1 is 1/52 = 0.0192, week 2 is 2/52 = 0.0385, etc.
+# Weeks that are smaller or equal to the month are assigned the probabilities of the month.
+
+# Create a matrix to store the weekly probabilities
+# probabilities_events_weekly <- matrix(numeric(), nrow=nrow(probabilities_events), ncol=52)
+probabilities_events_weekly <- data.frame(matrix(numeric(), nrow=nrow(probabilities_events), ncol=52), row.names=rownames(probabilities_events))
+colnames(probabilities_events_weekly) <- paste0("week", 1:52)
+
+for (w in 1:52) {
+    probabilities_events_weekly[w] <- probabilities_events[ceiling(12*w/52)]
+}
+
+# Save the weekly probabilities as a csv file
+write.csv(probabilities_events_weekly, file="../data/probabilities_events_weekly.csv")
+
+# Display the weekly probabilities
+probabilities_events_weekly
+
+# Check if the weekly probabilities sum to 1
+# data.frame(probabilities_events_weekly) %>% summarize(across(everything(), ~sum(.)))
+
+# Calculate the average probability of each event -> mean of each row
+# data.frame(probabilities_events_weekly) %>% summarize(across(everything(), ~mean(.))) IS WRONG
+probabilities_events_weekly$mean <- rowMeans(probabilities_events_weekly)
+
+
+```
+
+```{r}
+# The means and standard deviations for the impact of each event on the weekly demand
+distributions_impact <- list(
+  normal = c(1.0, 0.0),  # No impact for normal weeks
+  hurricanes = c(0.995, 0.05),
+  earthquakes = c(0.99, 0.03),
+  recession = c(0.99, 0.05),
+  economic_boom = c(1.01, 0.05),
+  oil_supply_disruptions = c(0.985, 0.07),
+  peace_agreements = c(1.005, 0.02),
+  renewable_energy_breakthrough = c(0.98, 0.1),
+  improved_fuel_efficiency = c(0.995, 0.02),
+  new_regulations = c(0.99, 0.03),
+  subsidies_for_petroleum_products = c(1.01, 0.04),
+  pandemic = c(0.965, 0.1),
+  large_scale_events = c(0.975, 0.02),
+  severe_winter_weather = c(1.002, 0.015),
+  summer_travel_season = c(1.001, 0.05),
+  price_speculation = c(1.001, 0.03)
+)
+
+# Function to sample a percentage impact based on the distribution
+sample_impact <- function(event) {
+  mean <- distributions_impact[[event]][1]
+  sd <- distributions_impact[[event]][2]
+  return(rnorm(1, mean, sd))
+}
+
+```
+
+```{r}
+# Sequentially update the ARIMA model
+
+# All weeks from 01/06/2024 to 31/12/2099
+weeks <- c(29:52, rep(1:52, 2099 - 2024), 1:20)
+events <- rownames(probabilities_events)
+
+# Copy of data_ts and arima_model
+data_ts_withshock <- data_ts
+arima_model_withshock <- model_demand
+forecast_demand_withshock <- forecast_demand
+forecast_demand_mean <- data.frame(mean=numeric(length=3944), value=numeric(length=3944))
+forecast_demand_upper <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+forecast_demand_lower <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+forecast_demand_upper <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+forecast_demand_lower <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+forecast_events <- numeric(length=3944)
+
+for (i in 1:3944) {
+    # Forecast the demand for the next week
+    next_week_demand <- forecast(arima_model_withshock, h=1)
+    
+    # Calculate the standard deviation
+    # standard_deviation <- (next_week_demand$mean - next_week_demand$lower[2])/2
+    standard_deviation <- estimate_standard_deviation(next_week_demand$lower[2], next_week_demand$upper[2])
+    
+    # Calculate the deviation from the mean
+    deviation <- rnorm(1, 0, standard_deviation)
+    # deviation <- 0
+    
+    # Calculate the impact of a random shock event on the demand
+    i_event <- sample(1:length(rownames(probabilities_events)), 1, prob=probabilities_events_weekly[[weeks[i]]])
+    impact <- sample_impact(events[i_event])
+    forecast_events[i] <- i_event
+    
+    # Generate a random demand value
+    forecast_demand_mean[i,] <- c(floor(next_week_demand$mean), floor(impact*(next_week_demand$mean + deviation)))
+    if (impact > 1) {
+        forecast_demand_upper[i,] <- impact*next_week_demand$upper[1,]
+        forecast_demand_lower[i,] <- next_week_demand$lower[1,]
+    }
+    else {
+        forecast_demand_upper[i,] <- next_week_demand$upper[1,]
+        forecast_demand_lower[i,] <- impact*next_week_demand$lower[1,]
+    }
+    # forecast_demand_upper[i,] <- impact*next_week_demand$upper[1,]
+    # forecast_demand_lower[i,] <- impact*next_week_demand$lower[1,]
+    
+    # Add the new demand value to the time series
+    data_ts_withshock <- ts(c(data_ts_withshock, forecast_demand_mean$value[i]), start=c(1991, 6), frequency=52)
+    
+    # Fit an ARIMA model to the updated time series
+    arima_model_withshock <- arima(
+        data_ts_withshock, 
+        order=c(1, 1, 2),
+        include.mean=TRUE
+    )
+}
+
+forecast_demand_withshock$mean <- ts(forecast_demand_mean$value, start=c(2024, 29), frequency=52)
+forecast_demand_withshock$upper <- ts(forecast_demand_upper, start=c(2024, 29), frequency=52)
+forecast_demand_withshock$lower <- ts(forecast_demand_lower, start=c(2024, 29), frequency=52)
+forecast_events <- ts(forecast_events, start=c(2024, 29), frequency=52)
+
+forecast_demand_withshock
+
+```
+
+```{r}
+# Plot the forecasted demand
+colors <- c("red2", "green4", "blue3", "purple2", "orange3", "orangered2", "gold3", "olivedrab3", "slateblue3", "darkorange3", "firebrick3", "darkgreen", "dodgerblue3", "darkviolet", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue", "darkmagenta", "darkcyan", "darkgoldenrod", "darkolivegreen", "darkslateblue", "darkorange", "darkred", "darkgreen", "darkblue")
+i <- 10
+# colors_plot <- c("red", "green3", "blue", "purple", "orange", "orangered", "gold", "olivedrab", "slateblue", "darkorange")
+par(mar=c(4, 4, 0.2, 0.2))
+plot(forecast_demand_withshock, main="", xlab="Weeks", ylab="Demand of petroleum products (thou. barrels)", family='serif', fcol=colors[13], ylim=c(20000, 90000))
+grid(lty=1)
+
+```
+
+```{r}
+# Save the predicted demand as a csv file
+write.csv(
+    cbind(Event=forecast_events, Mean=forecast_demand_mean$mean, data.frame(forecast_demand_withshock)),
+    file=paste0("../forecasts/forecast_demand_withshock_", i, ".csv")
+)
+
+```
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+TESTING                                                                        |
+--------------------------------------------------------------------------------
+
+```{r}
+cat(head(forecast_events, 500))
+
+```
+
+```{r}
+for (i in names(forecast(arima_model, h=1))) {
+    if ("matrix" %in% class(forecast_demand[[i]])) {
+        print(forecast_demand_copy[[i]][1,])
+    }
+    else {
+        print(forecast_demand_copy[[i]][1])
+    }
+}
+
+```
+
+```{r}
+f <- forecast(arima_model, h=1)
+standard_dev <- (f$mean - f$lower[2])/2
+f$lower + rnorm(1, 0, standard_dev)
+
+```
+
+```{r}
+forecast_demand_copy$mean <- numeric(length=3944)
+forecast_demand_copy$upper <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+forecast_demand_copy$lower <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+
+forecast_demand_copy
+
+```
+
+```{r}
+print(forecast_demand$mean[1])
+print("matrix" %in% class(forecast_demand[['lower']]))
+print(forecast_demand$upper[1,])
+print(forecast_demand$lower[1,])
+
+
+```
+
+```{r}
+# Plot the updated time series data
+autoplot(data_ts_copy, main="Updated Weekly Consumption of Finished Motor Gasoline in the U.S.", xlab="Year", ylab="Number of Barrels") + geom_line(tail(data_ts_copy, 3944)) + THEME + theme(aspect.ratio=0.5)
+
+```
+
+```{r}
+forecast_demand_copy <- forecast_demand
+
+forecast_demand_copy$mean <- tail(data_ts_copy, 3944)
+
+plot(forecast_demand_copy, main="Forecasted Demand of Petroleum Products", xlab="Weeks", ylab="Demand (in 1000 barrels)")
+
+```
+
+```{r}
+forecast_demand
+
+```
+
+```{r}
+# Create a data.frame with the dependent variable and the independent variables used in the model
+data_df <- data.frame(
+  Date = time(data_ts),
+  y_t = data_ts,
+  y_t_1 = lag(data$n_barrels_motorgasoline, 1),
+  e_t = residuals(arima_model), 
+  e_t_1 = lag(as.numeric(residuals(arima_model)), 1),
+  e_t_2 = lag(as.numeric(residuals(arima_model)), 2),
+  e_t_52 = lag(as.numeric(residuals(arima_model)), 52),
+  e_t_104 = lag(as.numeric(residuals(arima_model)), 104)
+)
+
+data_df[is.na(data_df)] <- 0
+data_df
+
+```
+
+```{r}
+# Y_t = 0.9813 + 0.8976 * Y_{t-1} - 1.4879 * e_{t-1} + 0.4957 * e_{t-2} + 0.1343 * e_{t-52} + 0.1327 * e_{t-104} + e_t
+
+
+data_df %>% transmute(
+    Date=Date,
+    y_t=y_t,
+    y_t_pred=0.9813 + 0.8976 * y_t_1 - 1.4879 * e_t_1 + 0.4957 * e_t_2 + 0.1343 * e_t_52 + 0.1327 * e_t_104 + e_t
+)
+
+```
+
+```{r}
+# Rebuild the ARIMA model
+
+# Fit an ARIMA model to the data
+arima_model_rebuild <- arima(
+    data_ts, 
+    order=c(1, 1, 2),
+    include.mean=TRUE
+)
+
+arima_model_rebuild
+
+```
+
+
+```{r}
+# Define the mean and standard deviation for the impact of each event
+impact_distributions <- list(
+  normal = c(1.0, 0.0),  # No impact for normal weeks
+  hurricanes = c(0.975, 0.05),
+  earthquakes = c(0.95, 0.03),
+  recession = c(0.9, 0.05),
+  economic_boom = c(1.1, 0.05),
+  oil_supply_disruptions = c(0.85, 0.07),
+  peace_agreements = c(1.05, 0.02),
+  renewable_energy_breakthrough = c(0.8, 0.1),
+  improved_fuel_efficiency = c(0.95, 0.02),
+  new_regulations = c(0.93, 0.03),
+  subsidies_for_petroleum_products = c(1.08, 0.04),
+  pandemic = c(0.75, 0.1),
+  large_scale_events = c(0.95, 0.02),
+  severe_winter_weather = c(1.03, 0.015),
+  summer_travel_season = c(1.12, 0.05),
+  price_speculation = c(1.07, 0.03)
+)
+
+# Function to sample a percentage impact based on the distribution
+sample_impact <- function(event) {
+  mean <- impact_distributions[[event]][1]
+  sd <- impact_distributions[[event]][2]
+  return(rnorm(1, mean, sd))
+}
+
+# Example of sampling an impact percentages
+for (event in names(impact_distributions)) {
+  cat(paste0(event, ": ", sample_impact(event), "\n"))
+}
+
+```
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+DIFFERENCE                                                                     |
+--------------------------------------------------------------------------------
+
+```{r}
+# Difference of demand
+diff_demand <- diff(data_ts)
+
+# Plot the difference of demand
+plot(diff_demand, main="Difference of Weekly Consumption of Finished Motor Gasoline in the U.S.", xlab="Year", ylab="Number of Barrels")
+
+```
+
+```{r}
+d <- diff_demand %>% stl(s.window="periodic") %>% seasadj()
+autoplot(d, main="Seasonally Adjusted Difference of Weekly Motor Gasoline Consumption: 1981-2024", xlab="Year", ylab="Number of Barrels") + THEME + theme(aspect.ratio=0.5)
+
+```
+
+```{r}
+d %>% diff() %>% ggtsdisplay(main="")
+
+```
+
+```{r}
+# Check residuals of the difference of demand data
+checkresiduals(diff_demand)
+
+```
+
+```{r}
+# Check for stationarity of the difference of demand data
+
+# Augmented Dickey-Fuller test
+adf_test_diff <- adf.test(diff_demand, alternative="stationary")
+
+# Display the results of the Augmented Dickey-Fuller test
+adf_test_diff
+
+```
+
+```{r}
+# Autocorrelations of the difference of demand data
+autocorrelations_diff <- acf(diff_demand, plot=FALSE, na.action = na.pass)
+
+# Plot the autocorrelation of log-returns
+plot(autocorrelations_diff, main = "Autocorrelation of Difference of Demand Data", family="serif", col="blue")
+
+```
+
+```{r}
+# Decompose the difference of demand data to identify the trend, seasonal, and random components
+
+diff_decomposed <- decompose(diff_demand)
+
+# Plot the decomposed difference of demand data
+plot(diff_decomposed)
+
+```
+
+```{r}
+# Fit an ARIMA model to the difference of demand data
+
+# Fit an ARIMA model to the difference of demand data
+arima_model_diff <- auto.arima(diff_demand)
+
+# Display the ARIMA model
+arima_model_diff
+
+```
+
+Series: diff_demand 
+ARIMA(0,0,2)(0,0,2)[52] with zero mean 
+
+Coefficients:
+          ma1      ma2    sma1    sma2
+      -0.5683  -0.0470  0.1322  0.1334
+s.e.   0.0239   0.0258  0.0245  0.0242
+
+sigma^2 = 96524:  log likelihood = -12439.61
+AIC=24889.22   AICc=24889.26   BIC=24916.53
+
+The best fitted ARIMA model is ARIMA(0,0,2)(0,0,2)[52] with zero mean. This means that:
+- The model has a first-order moving average component (MA1)
+- The model has a second-order moving average component (MA2)
+- The model has a seasonal moving average component (SMA1)
+- The model has a seasonal moving average component (SMA2)
+- The model has a zero mean
+
+The formula for the ARIMA model is:
+Y_t = -0.5683 * e_{t-1} - 0.0470 * e_{t-2} + 0.1322 * e_{t-52} + 0.1334 * e_{t-104} + e_t
+
+where:
+- Y_t is the difference of demand at time t
+- e_t is the error at time t
+
+The model has a log likelihood of -12439.61, AIC of 24889.22, AICc of 24889.26, and BIC of 24916.53.
+
+```{r}
+# Sequentially update the ARIMA model for the difference of demand
+
+# Default values
+demand_current <- data_ts[length(data_ts)]
+forecast_demand_d <- forecast_demand
+forecast_demand_mean_d <- numeric(length=3944)
+forecast_demand_upper_d <- matrix(numeric(), nrow=3944, ncol=2)
+forecast_demand_lower_d <- matrix(numeric(), nrow=3944, ncol=2)
+
+# Copy of diff_demand and arima_model_diff
+diff_demand_copy <- diff_demand
+arima_model_diff_copy <- arima_model_diff
+forecast_diff_demand_copy <- forecast(arima_model_diff, h=3944)
+forecast_diff_demand_mean <- numeric(length=3944)
+forecast_diff_demand_upper <- matrix(numeric(), nrow=3944, ncol=2)
+forecast_diff_demand_lower <- matrix(numeric(), nrow=3944, ncol=2)
+
+for (i in 1:3944) {
+    # Forecast the difference of demand for the next week
+    next_week_diff_demand <- forecast(arima_model_diff_copy, h=1)
+    
+    # Calculate the standard deviation
+    standard_deviation <- estimate_standard_deviation(next_week_diff_demand$lower[2], next_week_diff_demand$upper[2])
+    
+    # Calculate the deviation from the mean
+    deviation <- rnorm(1, 0, standard_deviation)
+    
+    # Calculate the impact of a random shock event on the difference of demand
+    event <- sample(rownames(probabilities_events), 1, prob=probabilities_events_weekly[[weeks[i]]])
+    impact <- sample_impact(event)
+    
+    # Generate a random difference of demand value
+    forecast_diff_demand_mean[i] <- impact*(next_week_diff_demand$mean + deviation)
+    forecast_diff_demand_upper[i,] <- impact*(next_week_diff_demand$upper[1,] + deviation)
+    forecast_diff_demand_lower[i,] <- impact*(next_week_diff_demand$lower[1,] + deviation)
+    
+    # Generate a random demand value
+    forecast_demand_mean_d[i] <- demand_current <- floor(impact*demand_current + forecast_diff_demand_mean[i])
+    forecast_demand_upper_d[i,] <- demand_current + forecast_diff_demand_upper[i,]
+    forecast_demand_lower_d[i,] <- demand_current + forecast_diff_demand_lower[i,]
+    
+    # Add the new difference of demand value to the time series
+    diff_demand_copy <- ts(c(diff_demand_copy, forecast_diff_demand_mean[i]), start=c(1991, 6), frequency=52)
+    
+    # Fit an ARIMA model to the updated time series
+    arima_model_diff_copy <- arima(
+        diff_demand_copy, 
+        order=c(0, 0, 2),
+        include.mean=TRUE
+    )
+}
+
+forecast_diff_demand_copy$mean <- ts(forecast_diff_demand_mean, start=c(2024, 29), frequency=52)
+forecast_diff_demand_copy$upper <- ts(forecast_diff_demand_upper, start=c(2024, 29), frequency=52)
+forecast_diff_demand_copy$lower <- ts(forecast_diff_demand_lower, start=c(2024, 29), frequency=52)
+
+forecast_demand_d$mean <- ts(forecast_demand_mean_d, start=c(2024, 29), frequency=52)
+forecast_demand_d$upper <- ts(forecast_demand_upper_d, start=c(2024, 29), frequency=52)
+forecast_demand_d$lower <- ts(forecast_demand_lower_d, start=c(2024, 29), frequency=52)
+
+forecast_diff_demand_copy
+
+```
+
+```{r}
+# Plot the forecasted difference of demand
+plot(forecast_diff_demand_copy, main="Forecasted Difference of Demand of Petroleum Products", xlab="Weeks", ylab="Difference of Demand (in 1000 barrels)")
+
+```
+
+```{r}
+forecast_demand_d
+
+```
+
+```{r}
+# Plot the forecasted demand
+plot(forecast_demand_d, main="Forecasted Demand of Petroleum Products", xlab="Weeks", ylab="Demand (in 1000 barrels)")
+
+```
+
+```{r}
+# Load forecast/forecast_demand_withshock{i}.csv
+
+for (i in 1:10) {
+    forecast_demand_withshock <- read.csv(paste0("./forecasts/forecast_demand_withshock", i, ".csv"), row.names=1) %>% mutate(
+        Mean=Mean/1000000, 
+        Point.Forecast=Point.Forecast/1000000,
+        Lo.80=Lo.80/1000000,
+        Hi.80=Hi.80/1000000,
+        Lo.95=Lo.95/1000000,
+        Hi.95=Hi.95/1000000
+    )
+    
+    write.csv(forecast_demand_withshock, file=paste0("./forecasts/forecast_demand_withshock", i, ".csv"))
+}
+
+
+```
+
+```{r}
+forecasts <- c()
+
+for (i in 1:10) {
+    forecasts <- c(forecasts, read.csv(paste0("./forecasts/forecast_demand_withshock", i, ".csv"), row.names=1)$Point.Forecast)
+    print(max(read.csv(paste0("./forecasts/forecast_demand_withshock", i, ".csv"), row.names=1)$Point.Forecast))
+}
+
+print(max(forecasts))
+
+```
+
+
+
+
+```{r}
+# END ----
+if (0) {
+    if (!exists('.Packages')) {  # create default sessions
+        if (length(.packages()) > 7)
+            lapply(paste0('package:', .packages()[1:(length(.packages()) - 7)]), function(p) 
+                suppressWarnings(detach(p, character.only=TRUE, unload=TRUE)))
+        rm(list=objects(all.names=TRUE))
+        setwd('~')
+    }
+    
+    else{  # restore previous script
+        if (length(.allPackages))
+            lapply(paste0('package:', unlist(.allPackages)), function(p) 
+                suppressWarnings(detach(p, character.only=TRUE, unload=TRUE)))
+        rm(list=objects(all.names=TRUE))
+        load('~/R/.prvEnvironment.RData')
+        invisible(lapply(.prvPackages, function(p) 
+            suppressPackageStartupMessages(require(p, quietly=TRUE, character.only=TRUE))))
+        setwd(.prvDirectory)
+        rm(.prvPackages, .prvDirectory)
+    }
+    
+    cat('\n', ifelse(exists('.active'), paste('Current File:', .active), 'R session reset...'), '\n\n', sep='')
+}
+
+```

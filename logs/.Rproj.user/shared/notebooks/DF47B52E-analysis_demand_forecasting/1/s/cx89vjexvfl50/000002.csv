@@ -1,0 +1,8 @@
+"0","```r
+forecast_demand_copy$mean <- numeric(length=3944)
+forecast_demand_copy$upper <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+forecast_demand_copy$lower <- matrix(numeric(length=3944), nrow=3944, ncol=2)
+
+forecast_demand_copy
+
+```"

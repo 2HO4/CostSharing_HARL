@@ -1,0 +1,7 @@
+"0","```r
+
+# Check if the weekly probabilities sum to 1
+# data.frame(probabilities_events_weekly) %>% summarize(across(everything(), ~sum(.)))
+
+
+```"

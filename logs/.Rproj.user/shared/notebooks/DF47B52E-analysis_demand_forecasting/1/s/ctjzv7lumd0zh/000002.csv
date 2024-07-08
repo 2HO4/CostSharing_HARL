@@ -1,0 +1,5 @@
+"0","```r
+# Plot the forecasted demand
+plot(forecast_demand_copy, main=\"Forecasted Demand of Petroleum Products\", xlab=\"Weeks\", ylab=\"Demand (in 1000 barrels)\")
+
+```"

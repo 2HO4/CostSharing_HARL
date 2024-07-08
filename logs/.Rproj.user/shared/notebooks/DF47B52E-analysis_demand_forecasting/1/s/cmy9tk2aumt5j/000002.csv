@@ -1,0 +1,12 @@
+"0","```r
+# Load the ARIMA model of demand to predict the demand
+
+# Load the ARIMA model of demand
+model_demand <- readRDS(\"./models/model_demand.rds\")
+
+# Predict the demand until 2100
+forecast_demand <- forecast(model_demand, h=3944)  # 01/01/2100 - 31/05/2024 = 27608 days = 3944 weeks
+
+# Plot the forecasted demand
+plot(forecast_demand, main=\"Forecasted Demand of Petroleum Products\", xlab=\"Weeks\", ylab=\"Demand (in 1000 barrels)\")
+```"

@@ -1,0 +1,99 @@
+{
+    "algo_args":	{
+        "algo":	{
+            "batch_size":	1000,
+            "buffer_size":	10000,
+            "expl_noise":	0.1,
+            "fixed_order":	false,
+            "gamma":	0.99,
+            "n_step":	1,
+            "polyak":	0.005,
+            "share_param":	false
+        },
+        "device":	{
+            "cuda":	false,
+            "cuda_deterministic":	true,
+            "torch_threads":	4
+        },
+        "eval":	{
+            "eval_episodes":	1,
+            "n_eval_rollout_threads":	10,
+            "use_eval":	true
+        },
+        "logger":	{
+            "log_dir":	"./results"
+        },
+        "model":	{
+            "activation_func":	"relu",
+            "critic_lr":	0.01,
+            "final_activation_func":	"tanh",
+            "hidden_sizes":	[
+                128,
+                128,
+                128,
+                128
+            ],
+            "lr":	0.01
+        },
+        "render":	{
+            "render_episodes":	10,
+            "use_render":	false
+        },
+        "seed":	{
+            "seed":	1,
+            "seed_specify":	true
+        },
+        "train":	{
+            "eval_interval":	3945,
+            "log_interval":	1,
+            "model_dir":	"results/cost_sharing/cost_sharing/haddpg/duopoly_hete_quota_haddpg/seed-00001-2024-07-04-10-13-18/models",
+            "n_rollout_threads":	10,
+            "num_env_steps":	3945000,
+            "train_interval":	39450,
+            "update_per_train":	1,
+            "use_linear_lr_decay":	true,
+            "use_proper_time_limits":	true,
+            "warmup_steps":	39450
+        }
+    },
+    "env_args":	{
+        "algorithm":	"serial",
+        "cap_production":	80000,
+        "cost_function":	"convex",
+        "date_end":	[
+            2100,
+            20
+        ],
+        "date_start":	[
+            2024,
+            28
+        ],
+        "details_firms":	[
+            {
+                "cash_flow":	100000,
+                "costs_fixed":	1000,
+                "inventory":	50000,
+                "name":	"FIRM00"
+            },
+            {
+                "cash_flow":	150000,
+                "costs_fixed":	1500,
+                "inventory":	75000,
+                "name":	"FIRM01"
+            }
+        ],
+        "discount_demand":	0.1,
+        "emissions_max":	48.62,
+        "hide_others_moves":	false,
+        "portion_cost":	1,
+        "price_is_constant":	true,
+        "render_mode":	"human",
+        "seed":	0
+    },
+    "main_args":	{
+        "algo":	"haddpg",
+        "env":	"cost_sharing",
+        "exp_name":	"duopoly_hete_quota_haddpg_lr01_buffer_size10k",
+        "load_config":	""
+    }
+}

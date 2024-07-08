@@ -1,0 +1,13 @@
+"0","```r
+# Rebuild the ARIMA model
+
+# Fit an ARIMA model to the data
+arima_model_rebuild <- arima(
+    data_ts, 
+    order=c(1, 1, 2),
+    include.mean=TRUE
+)
+
+arima_model_rebuild
+
+```"

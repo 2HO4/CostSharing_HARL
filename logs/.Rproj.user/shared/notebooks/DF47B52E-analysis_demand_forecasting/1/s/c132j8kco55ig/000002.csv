@@ -1,0 +1,5 @@
+"0","```r
+# Save the ARIMA model of demand
+saveRDS(arima_model, file = \"./models/model_demand.rds\")
+
+```"

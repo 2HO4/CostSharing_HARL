@@ -1,0 +1,150 @@
+# This is the custom configuration file for the algorithm used in HARL.
+
+# the details of firms can be either "heterogeneous" or "homogeneous" or a list of details for each firm
+# details_firms: homogeneous
+details_firms:
+  # - name: FIRM
+  #   costs_fixed: 0
+  #   cash_flow: 100000
+  #   inventory: 50000
+
+ - name: FIRM00
+   costs_fixed: 1000
+   cash_flow: 40000
+   inventory: 20000
+
+ - name: FIRM01
+   costs_fixed: 1000
+   cash_flow: 40000
+   inventory: 20000
+
+#  - name: FIRM01
+#    costs_fixed: 5000
+#    cash_flow: 100000
+#    inventory: 50000
+
+ - name: FIRM02
+   costs_fixed: 1000
+   cash_flow: 40000
+   inventory: 20000
+
+ - name: FIRM03
+   costs_fixed: 1000
+   cash_flow: 40000
+   inventory: 20000
+
+#   - name: SMALL
+#     costs_fixed: 1000
+#     cash_flow: 10000
+#     inventory: 0
+
+#   - name: SMALL_WITH_CASHFLOW
+#     costs_fixed: 1000
+#     cash_flow: 20000
+#     inventory: 0
+
+#   - name: SMALL_WITH_INVENTORY
+#     costs_fixed: 1000
+#     cash_flow: 10000
+#     inventory: 10000
+
+#   - name: SMALL_WITH_CASHFLOW_INVENTORY
+#     costs_fixed: 1000
+#     cash_flow: 20000
+#     inventory: 10000
+
+#   - name: MEDIUM
+#     costs_fixed: 2000
+#     cash_flow: 20000
+#     inventory: 0
+
+#   - name: MEDIUM_WITH_CASHFLOW
+#     costs_fixed: 2000
+#     cash_flow: 40000
+#     inventory: 0
+
+#   - name: MEDIUM_WITH_INVENTORY
+#     costs_fixed: 2000
+#     cash_flow: 20000
+#     inventory: 20000
+
+#   - name: MEDIUM_WITH_CASHFLOW_INVENTORY
+#     costs_fixed: 2000
+#     cash_flow: 40000
+#     inventory: 20000
+
+#   - name: BIG
+#     costs_fixed: 3000
+#     cash_flow: 40000
+#     inventory: 0
+
+#   - name: BIG_WITH_CASHFLOW
+#     costs_fixed: 3000
+#     cash_flow: 80000
+#     inventory: 0
+
+#   - name: BIG_WITH_INVENTORY
+#     costs_fixed: 3000
+#     cash_flow: 40000
+#     inventory: 40000
+
+#   - name: BIG_WITH_CASHFLOW_INVENTORY
+#     costs_fixed: 2000
+#     cash_flow: 80000
+#     inventory: 4000 
+
+# the start date in (year, week)
+# a year is considered to be exactly 52 weeks, hence, the week can be from 1 to 52
+# the available dates range from (2024, 28) to (2100, 20)
+date_start:
+  - 2024
+  - 28
+
+# the end date in (year, week)
+date_end:
+  - 2100
+  - 20
+
+# the maximum emissions that is allowed in the environment of the U.S. economy of gasoline
+# if left empty, it is defaulted to 999,999,999
+emissions_max: 47.62  # 47.62 = (2000 - 41) (GtCO2e) * 11.05% (%US) * 22% (%gasoline)
+
+# the number to initialize pseudorandom number generator
+seed: 0
+
+# whether the price is set to constant (at 1) or not
+# if the price is not constant, it will be estimated based on a demand-supply model derived from Espey's (1996) meta-analysis
+price_is_constant: True
+
+# the discount rate of the remaining demand that could not be supplied in this week
+discount_demand: 0.1
+
+# the parameter that scales the total production cost of gasoline shared among firms
+# initially, it is set so that the cost of producing the ideal/maximum-allowed barrels of gasoline equals the price per barrel
+# hence, it represents the proportion of that price charged to firms for each barrel produced
+portion_cost: 1
+
+# the minimum number of barrels of gasoline a single firm must produce in a week
+# if left empty, it is defaulted to '0'
+quota_production: 0
+
+# the maximum number of barrels of gasoline a single firm can produce in a week
+# if left empty, it is defaulted to 'infinite'
+cap_production: 80000
+
+# the flag indicating whether past production of firms should be hidden from each firm
+hide_others_moves: False
+
+# the cost function of the number of barrels produced
+# choose from ("convex", "linear", "concave", "piecewise", "step", "sigmoid")
+# more cost functions can added in ./resources/economics/cost_functions.py
+cost_function: convex
+
+# the cost-sharing algorithm to share the total cost calculated from the cost function among the firms
+# choose from ("serial", "average")
+# more algorithms can be added in ./resources/economics/cost_sharing_algorithms.py
+algorithm: serial
+
+# the render mode if the game is rendered
+# choose from ("human", "ansi")
+render_mode: human

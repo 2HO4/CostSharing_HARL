@@ -1,0 +1,64 @@
+"0","```r
+# Sequentially update the ARIMA model for the difference of demand
+
+# Default values
+demand_current <- data_ts[length(data_ts)]
+forecast_demand_d <- forecast_demand
+forecast_demand_mean_d <- numeric(length=3944)
+forecast_demand_upper_d <- matrix(numeric(), nrow=3944, ncol=2)
+forecast_demand_lower_d <- matrix(numeric(), nrow=3944, ncol=2)
+
+# Copy of diff_demand and arima_model_diff
+diff_demand_copy <- diff_demand
+arima_model_diff_copy <- arima_model_diff
+forecast_diff_demand_copy <- forecast(arima_model_diff, h=3944)
+forecast_diff_demand_mean <- numeric(length=3944)
+forecast_diff_demand_upper <- matrix(numeric(), nrow=3944, ncol=2)
+forecast_diff_demand_lower <- matrix(numeric(), nrow=3944, ncol=2)
+
+for (i in 1:3944) {
+    # Forecast the difference of demand for the next week
+    next_week_diff_demand <- forecast(arima_model_diff_copy, h=1)
+    
+    # Calculate the standard deviation
+    standard_deviation <- estimate_standard_deviation(next_week_diff_demand$lower[2], next_week_diff_demand$upper[2])
+    
+    # Calculate the deviation from the mean
+    deviation <- rnorm(1, 0, standard_deviation)
+    
+    # Calculate the impact of a random shock event on the difference of demand
+    event <- sample(rownames(probabilities_events), 1, prob=probabilities_events_weekly[[weeks[i]]])
+    impact <- sample_impact(event)
+    
+    # Generate a random difference of demand value
+    forecast_diff_demand_mean[i] <- impact*(next_week_diff_demand$mean + deviation)
+    forecast_diff_demand_upper[i,] <- impact*(next_week_diff_demand$upper[1,] + deviation)
+    forecast_diff_demand_lower[i,] <- impact*(next_week_diff_demand$lower[1,] + deviation)
+    
+    # Generate a random demand value
+    forecast_demand_mean_d[i] <- demand_current <- floor(impact*demand_current + forecast_diff_demand_mean[i])
+    forecast_demand_upper_d[i,] <- demand_current + forecast_diff_demand_upper[i,]
+    forecast_demand_lower_d[i,] <- demand_current + forecast_diff_demand_lower[i,]
+    
+    # Add the new difference of demand value to the time series
+    diff_demand_copy <- ts(c(diff_demand_copy, forecast_diff_demand_mean[i]), start=c(1991, 6), frequency=52)
+    
+    # Fit an ARIMA model to the updated time series
+    arima_model_diff_copy <- arima(
+        diff_demand_copy, 
+        order=c(0, 0, 2),
+        include.mean=TRUE
+    )
+}
+
+forecast_diff_demand_copy$mean <- ts(forecast_diff_demand_mean, start=c(2024, 29), frequency=52)
+forecast_diff_demand_copy$upper <- ts(forecast_diff_demand_upper, start=c(2024, 29), frequency=52)
+forecast_diff_demand_copy$lower <- ts(forecast_diff_demand_lower, start=c(2024, 29), frequency=52)
+
+forecast_demand_d$mean <- ts(forecast_demand_mean_d, start=c(2024, 29), frequency=52)
+forecast_demand_d$upper <- ts(forecast_demand_upper_d, start=c(2024, 29), frequency=52)
+forecast_demand_d$lower <- ts(forecast_demand_lower_d, start=c(2024, 29), frequency=52)
+
+forecast_diff_demand_copy
+
+```"

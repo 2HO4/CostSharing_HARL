@@ -1,0 +1,7 @@
+"0","# Decompose the time series data to identify the trend, seasonal, and random components"
+"0",""
+"0","data_decomposed <- decompose(data_ts)"
+"0",""
+"0","# Plot the decomposed time series data"
+"0","par(mar=c(4, 4, 0.2, 0.2))"
+"0","plot(data_decomposed, family='serif')"

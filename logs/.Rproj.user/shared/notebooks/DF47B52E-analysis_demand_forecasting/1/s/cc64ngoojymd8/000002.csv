@@ -1,0 +1,29 @@
+"0","```r
+# The means and standard deviations for the impact of each event on the weekly demand
+distributions_impact <- list(
+  normal = c(1.0, 0.0),  # No impact for normal weeks
+  hurricanes = c(0.995, 0.05),
+  earthquakes = c(0.99, 0.03),
+  recession = c(0.99, 0.05),
+  economic_boom = c(1.01, 0.05),
+  oil_supply_disruptions = c(0.985, 0.07),
+  peace_agreements = c(1.005, 0.02),
+  renewable_energy_breakthrough = c(0.98, 0.1),
+  improved_fuel_efficiency = c(0.995, 0.02),
+  new_regulations = c(0.99, 0.03),
+  subsidies_for_petroleum_products = c(1.01, 0.04),
+  pandemic = c(0.965, 0.1),
+  large_scale_events = c(0.975, 0.02),
+  severe_winter_weather = c(1.002, 0.015),
+  summer_travel_season = c(1.001, 0.05),
+  price_speculation = c(1.001, 0.03)
+)
+
+# Function to sample a percentage impact based on the distribution
+sample_impact <- function(event) {
+  mean <- distributions_impact[[event]][1]
+  sd <- distributions_impact[[event]][2]
+  return(rnorm(1, mean, sd))
+}
+
+```"

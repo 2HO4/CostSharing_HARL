@@ -1,0 +1,19 @@
+"0","```r
+
+# Convert the probabilities_events into table of weekly probabilities. 
+# Months are divided into 12 months, for instance, January is 1/12 = 0.0833, February is 2/12 = 0.1667, etc. 
+# Weeks are divided into 52 weeks, for instance, week 1 is 1/52 = 0.0192, week 2 is 2/52 = 0.0385, etc.
+# Weeks that are smaller or equal to the month are assigned the probabilities of the month.
+
+# Create a matrix to store the weekly probabilities
+# probabilities_events_weekly <- matrix(numeric(), nrow=nrow(probabilities_events), ncol=52)
+probabilities_events_weekly <- data.frame(matrix(numeric(), nrow=nrow(probabilities_events), ncol=52), row.names=rownames(probabilities_events))
+colnames(probabilities_events_weekly) <- paste0(\"week\", 1:52)
+
+for (w in 1:52) {
+    probabilities_events_weekly[w] <- probabilities_events[ceiling(12*w/52)]
+}
+
+# Display the weekly probabilities
+probabilities_events_weekly
+```"

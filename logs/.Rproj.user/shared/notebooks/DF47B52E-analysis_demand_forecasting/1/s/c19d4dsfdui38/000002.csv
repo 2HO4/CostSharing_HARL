@@ -1,0 +1,12 @@
+"0","```r
+# Check residuals of the time series data
+checkresiduals(data_ts)
+```"
+"1","
+	Ljung-Box test
+
+data:  Residuals
+Q* = 69241, df = 104, p-value < 2.2e-16
+
+Model df: 0.   Total lags used: 104
+"

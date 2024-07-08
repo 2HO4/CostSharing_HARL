@@ -1,0 +1,57 @@
+"0","```r
+# Results of models with different cost functions
+
+# Main folder
+folder <- \"cost_functions_homo\"
+
+# Subfolders
+subfolders <- c(\"duopoly\", \"duopoly_linear\", \"duopoly_concave\")
+
+# Filenames to be combined
+filenames <- c(
+  \"agent0_actor_grad_norm_agent0_actor_grad_norm_.csv\",
+  \"agent1_actor_grad_norm_agent1_actor_grad_norm_.csv\",
+  \"critic_average_step_rewards_critic_average_step_rewards_.csv\",
+  \"train_episode_rewards_aver_rewards_.csv\"
+)
+
+# Types of cost function
+types_cost_function <- c(\"Convex\", \"Linear\", \"Concave\")
+
+# List to store the combined data
+combined_data <- list()
+
+# Loop over each filename
+for (filename in filenames) {
+  # Initialize an empty list to store data from each subfolder
+  data_list <- list()
+  
+  # Loop over each subfolder
+  for (i in 1:3) {
+    # Construct the full file path
+    file_path <- file.path(folder, subfolders[i], filename)
+    
+    # Read the CSV file
+    data <- read.csv(file_path)
+    
+    # Add a column indicating the cost function
+    data$`Cost functions` <- types_cost_function[i]
+    
+    # Add the data frame to the list
+    data_list[[subfolders[i]]] <- data
+  }
+  
+  # Add argument to remove row names
+  data_list[[\"make.row.names\"]] <- FALSE
+  
+  # Combine data from all subfolders into one data frame
+  combined_data[[filename]] <- do.call(rbind, data_list)
+}
+
+# Save the combined data frames into individual variables
+agent0_actor_grad_norm <- combined_data[[filenames[1]]]
+agent1_actor_grad_norm <- combined_data[[filenames[2]]]
+critic_average_step_rewards <- combined_data[[filenames[3]]]
+train_episode_rewards <- combined_data[[filenames[4]]]
+
+```"

@@ -1,0 +1,5 @@
+"0","```r
+d <- diff_demand %>% stl(s.window=\"periodic\") %>% seasadj()
+autoplot(d, main=\"Seasonally Adjusted Difference of Weekly Motor Gasoline Consumption: 1981-2024\", xlab=\"Year\", ylab=\"Number of Barrels\") + THEME + theme(aspect.ratio=0.5)
+
+```"

@@ -1,0 +1,9 @@
+name: ./.venv
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.8
+  - setuptools=65.5.0
+  - wheel[version='<0.40.0']
+prefix: ./.venv

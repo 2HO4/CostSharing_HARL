@@ -1,0 +1,6 @@
+"0","# Save the predicted demand as a csv file"
+"0","write.csv("
+"0","    cbind(Event=forecast_events, Mean=forecast_demand_mean$mean, data.frame(forecast_demand_withshock)),"
+"0","    file=paste0(""../forecasts/forecast_demand_withshock_"", i, "".csv"")"
+"0",")"
+"0",""

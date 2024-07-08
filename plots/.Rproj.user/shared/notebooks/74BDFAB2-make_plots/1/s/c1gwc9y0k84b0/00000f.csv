@@ -1,0 +1,6 @@
+"0","# Save the forecasted cumulative US moqtor gasoline GHG emissions"
+"0","write.csv("
+"0","    df_forecast_ghg_us_cumulative_pre_industrial,"
+"0","    'D:/Documents/Thesis/forecasts/forecast_cumulativeghgusemissions.csv', row.names=FALSE"
+"0",")"
+"0",""

@@ -1,0 +1,8 @@
+"0","```r
+print(forecast_demand$mean[1])
+print(\"matrix\" %in% class(forecast_demand[['lower']]))
+print(forecast_demand$upper[1,])
+print(forecast_demand$lower[1,])
+
+
+```"

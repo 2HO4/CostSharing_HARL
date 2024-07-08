@@ -1,0 +1,6 @@
+"0","```r
+f <- forecast(arima_model, h=1)
+standard_dev <- (f$mean - f$lower[2])/2
+f$lower + rnorm(1, 0, standard_dev)
+
+```"

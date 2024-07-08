@@ -1,0 +1,4 @@
+"0",""
+"0","# Save the forecasted demand as a csv file"
+"0","# write.csv(forecast_demand, file=""../forecasts/forecast_demand_deterministic.csv"")"
+"0",""

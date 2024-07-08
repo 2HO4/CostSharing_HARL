@@ -1,0 +1,50 @@
+"0","```r
+# Results of models with different price characteristics of homogeneous agents
+
+# Main folder
+folder <- \"prices_characteristics_homo\"
+
+# Subfolders
+subfolders <- c(\"duopoly\", \"duopoly_pf\", \"duopoly_pf_quota\", \"duopoly_quota\")
+
+# Filenames to be combined
+filenames <- c(\"train_episode_rewards_aver_rewards.csv\")
+
+# Types of price characteristics
+types_price_characteristics <- c(\"Constant price\", \"Price fluctuation\", \"Price fluctuation and quota\", \"Constant price and quota\")
+
+# List to store the combined data
+combined_data <- list()
+
+# Loop over each filename
+for (filename in filenames) {
+  # Initialize an empty list to store data from each subfolder
+  data_list <- list()
+  
+  # Loop over each subfolder
+  for (i in 1:4) {
+    # Construct the full file path
+    file_path <- file.path(folder, subfolders[i], filename)
+    
+    # Read the CSV file
+    data <- read.csv(file_path)
+    
+    # Add a column indicating the price characteristic
+    data$`Homogeneous firms` <- types_price_characteristics[i]
+    
+    # Add the data frame to the list
+    data_list[[subfolders[i]]] <- data
+  }
+  
+  # Add argument to remove row names
+  data_list[[\"make.row.names\"]] <- FALSE
+  
+  # Combine data from all subfolders into one data frame
+  combined_data[[filename]] <- do.call(rbind, data_list)
+}
+
+# Save the combined data frames into individual variables
+train_episode_rewards_prices_characteristics_homo <- combined_data[[filenames[1]]]
+
+
+```"
