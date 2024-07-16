@@ -1,4 +1,0 @@
-"0","# Df of interpolated forecasted cumulative US motor gasoline GHG emissions"
-"0","df_forecast_ghg_us_cumulative_pre_industrial <- cbind(Week=1:3944, forecast_ghg_us_cumulative_pre_industrial[81:4024,])"
-"0",""
-"0","df_forecast_ghg_us_cumulative_pre_industrial"

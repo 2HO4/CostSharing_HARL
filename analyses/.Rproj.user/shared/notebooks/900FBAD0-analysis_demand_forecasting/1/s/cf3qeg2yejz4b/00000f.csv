@@ -1,7 +1,0 @@
-"0","d <- data_ts %>% stl(s.window=""periodic"") %>% seasadj()"
-"0","p <- autoplot(d, xlab=""Year"", ylab=""U.S. weekly motor gasoline consumption (thou. barrels)"") + THEME + theme(aspect.ratio=0.5)"
-"0",""
-"0","ggsave(""./seasonally_adjusted_weekly_motor_gasoline_consumption.png"", p, width=7.64, height=3, units='in', dpi=300)"
-"0",""
-"0","p"
-"0",""

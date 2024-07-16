@@ -1,8 +1,0 @@
-"0","# Select US data"
-"0","gasoline_ghg_emissions_us <- ghg_emissions %>% "
-"0","    filter(Entity == ""United States"") %>% "
-"0","    select(Year, Emissions) %>%"
-"0","    mutate(Emissions = Emissions*.22 / 1e9) # adjust to 22% emission from motor gasoline and convert to GtCO2e"
-"0",""
-"0","# Print the summarized data"
-"0","gasoline_ghg_emissions_us"

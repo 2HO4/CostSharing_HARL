@@ -1,7 +1,0 @@
-"0","```r
-d <- read.csv(\"forecasts/forecast_demand_withshock1.csv\", header=TRUE, row.names=1)
-
-d
-
-
-```"

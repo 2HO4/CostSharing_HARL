@@ -1,8 +1,0 @@
-"0","```r
-# Save the forecasted cumulative US moqtor gasoline GHG emissions
-write.csv(
-    df_forecast_ghg_us_cumulative_pre_industrial,
-    'forecasts/forecast_cumulativeghgusemissions.csv', row.names=FALSE
-)
-
-```"

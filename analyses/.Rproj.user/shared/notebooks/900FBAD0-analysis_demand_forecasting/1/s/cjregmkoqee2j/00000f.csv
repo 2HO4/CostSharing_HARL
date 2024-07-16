@@ -1,3 +1,0 @@
-"0","# Save the ARIMA model of demand"
-"0","saveRDS(arima_model, file = ""./models/model_demand.rds"")"
-"0",""
