@@ -1,5 +1,0 @@
-"0","```r
-# Plot the updated time series data
-autoplot(data_ts_copy, main=\"Updated Weekly Consumption of Finished Motor Gasoline in the U.S.\", xlab=\"Year\", ylab=\"Number of Barrels\") + geom_line(tail(data_ts_copy, 3944)) + THEME + theme(aspect.ratio=0.5)
-
-```"

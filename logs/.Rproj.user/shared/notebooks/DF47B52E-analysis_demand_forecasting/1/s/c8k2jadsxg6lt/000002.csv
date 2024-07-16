@@ -1,4 +1,0 @@
-"0","```r
-cat(head(forecast_events, 500))
-
-```"

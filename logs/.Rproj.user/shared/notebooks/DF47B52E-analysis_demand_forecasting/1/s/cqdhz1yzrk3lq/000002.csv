@@ -1,5 +1,0 @@
-"0","```r
-# Save the predicted demand as a csv file
-write.csv(forecast_demand_copy, file=\"./data/forecast_demand_noshock.csv\")
-
-```"

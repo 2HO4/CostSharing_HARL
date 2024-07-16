@@ -1,8 +1,0 @@
-"0","```r
-# Load the weekly supply of petroleum data in the U.S. (./data/USWeeklyProductSupplied.xlsx)
-
-data <- read_excel(\"./data/USWeeklyProductSupplied.xlsx\", sheet=\"Data 1\", col_names=c(\"Date\", \"n_barrels_total\", \"n_barrels_motorgasoline\"), range=\"A17:C1755\") %>% select(Date, n_barrels_motorgasoline)
-
-# Display the first 6 rows of the data
-head(data)
-```"

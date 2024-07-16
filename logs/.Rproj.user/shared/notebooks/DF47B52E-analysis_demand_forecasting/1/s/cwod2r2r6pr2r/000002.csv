@@ -1,8 +1,0 @@
-"0","```r
-# Difference of demand
-diff_demand <- diff(data_ts)
-
-# Plot the difference of demand
-plot(diff_demand, main=\"Difference of Weekly Consumption of Finished Motor Gasoline in the U.S.\", xlab=\"Year\", ylab=\"Number of Barrels\")
-
-```"

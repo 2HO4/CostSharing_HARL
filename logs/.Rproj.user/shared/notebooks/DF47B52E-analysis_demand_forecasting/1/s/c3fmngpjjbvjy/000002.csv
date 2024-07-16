@@ -1,5 +1,0 @@
-"0","```r
-d <- data_ts %>% stl(s.window=\"periodic\") %>% seasadj()
-autoplot(d, main=\"Seasonally Adjusted Weekly Motor Gasoline Consumption: 1981-2024\", xlab=\"Year\", ylab=\"Number of Barrels\") + THEME + theme(aspect.ratio=0.5)
-
-```"

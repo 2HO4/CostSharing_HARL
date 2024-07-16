@@ -1,8 +1,0 @@
-"0","```r
-forecast_demand_copy <- forecast_demand
-
-forecast_demand_copy$mean <- tail(data_ts_copy, 3944)
-
-plot(forecast_demand_copy, main=\"Forecasted Demand of Petroleum Products\", xlab=\"Weeks\", ylab=\"Demand (in 1000 barrels)\")
-
-```"

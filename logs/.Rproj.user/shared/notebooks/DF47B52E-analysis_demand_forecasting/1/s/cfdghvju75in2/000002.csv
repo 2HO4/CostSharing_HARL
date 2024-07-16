@@ -1,5 +1,0 @@
-"0","```r
-# Check residuals of the difference of demand data
-checkresiduals(diff_demand)
-
-```"

@@ -1,8 +1,0 @@
-"0","```r
-# Autocorrelations of the demand data
-autocorrelations <- acf(data_ts, plot=FALSE, na.action = na.pass)
-
-# Plot the autocorrelation of log-returns
-plot(autocorrelations, main = \"Autocorrelation of Demand Data\", family=\"serif\", col=\"blue\")
-
-```"

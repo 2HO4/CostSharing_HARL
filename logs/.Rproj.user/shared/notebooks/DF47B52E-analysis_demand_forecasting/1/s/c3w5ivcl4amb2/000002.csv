@@ -1,8 +1,0 @@
-"0","```r
-# Load data/probabilities_events.csv. This file contains the probabilities of possible events occurring in the months. First rows are column names of the months, first column is the event names.
-
-probabilities_events <- read.csv(\"./data/probabilities_events.csv\", row.names=1)
-
-# Display the first 6 rows of the data
-probabilities_events
-```"

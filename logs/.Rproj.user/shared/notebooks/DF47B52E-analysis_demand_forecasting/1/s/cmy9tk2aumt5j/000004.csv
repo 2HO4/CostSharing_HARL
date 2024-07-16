@@ -1,6 +1,0 @@
-"0","```r
-
-# Save the forecasted demand as a csv file
-write.csv(forecast_demand, file=\"./forecasts/forecast_demand_deterministic.csv\")
-
-```"

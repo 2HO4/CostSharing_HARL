@@ -3,7 +3,7 @@
     "path": "~/Thesis/logs/results_models.Rmd",
     "project_path": null,
     "type": "r_markdown",
-    "hash": "4278808695",
+    "hash": "1639226075",
     "contents": "",
     "dirty": false,
     "created": 1720244056881.0,
@@ -17,11 +17,11 @@
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1720213866,
+    "lastKnownWriteTime": 1720692184,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1720691233578,
+    "last_content_update": 1721122572090,
     "read_only": false,
     "read_only_alternatives": []
 }

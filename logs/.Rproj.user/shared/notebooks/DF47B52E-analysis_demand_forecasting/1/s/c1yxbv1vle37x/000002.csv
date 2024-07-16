@@ -1,8 +1,0 @@
-"0","```r
-# Autocorrelations of the difference of demand data
-autocorrelations_diff <- acf(diff_demand, plot=FALSE, na.action = na.pass)
-
-# Plot the autocorrelation of log-returns
-plot(autocorrelations_diff, main = \"Autocorrelation of Difference of Demand Data\", family=\"serif\", col=\"blue\")
-
-```"

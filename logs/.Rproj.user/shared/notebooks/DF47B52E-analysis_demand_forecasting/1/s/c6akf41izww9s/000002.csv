@@ -1,9 +1,0 @@
-"0","```r
-# Decompose the difference of demand data to identify the trend, seasonal, and random components
-
-diff_decomposed <- decompose(diff_demand)
-
-# Plot the decomposed difference of demand data
-plot(diff_decomposed)
-
-```"

@@ -1,9 +1,0 @@
-"0","```r
-# Decompose the time series data to identify the trend, seasonal, and random components
-
-data_decomposed <- decompose(data_ts)
-
-# Plot the decomposed time series data
-plot(data_decomposed)
-
-```"

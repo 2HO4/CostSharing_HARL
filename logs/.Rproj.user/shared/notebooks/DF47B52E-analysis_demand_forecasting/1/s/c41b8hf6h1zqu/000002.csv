@@ -1,5 +1,0 @@
-"0","```r
-# Plot the forecasted difference of demand
-plot(forecast_diff_demand_copy, main=\"Forecasted Difference of Demand of Petroleum Products\", xlab=\"Weeks\", ylab=\"Difference of Demand (in 1000 barrels)\")
-
-```"
