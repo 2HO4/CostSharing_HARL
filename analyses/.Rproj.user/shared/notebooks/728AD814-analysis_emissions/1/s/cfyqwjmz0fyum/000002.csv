@@ -1,0 +1,8 @@
+"0","```r
+# Save the forecasted cumulative GHG emissions
+write.csv(
+    tail(df_forecast_ghg_cumulative_pre_industrial, (2100 - 2024)*52), 
+    'forecasts/forecast_cumulativeghgemissions.csv', row.names=FALSE
+)
+
+```"

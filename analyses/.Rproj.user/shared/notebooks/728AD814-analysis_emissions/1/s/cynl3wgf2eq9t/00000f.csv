@@ -1,0 +1,8 @@
+"0","# Cumulative US motor gasoline GHG emissions"
+"0","cumulative_ghg_us <- cumsum(gasoline_ghg_emissions_us_weekly)"
+"0","cumulative_ghg_us_ts <- ts(cumulative_ghg_us, start=c(min(y), 1), frequency=52)"
+"0",""
+"0","forecast_ghg_us_cumulative <- forecast(auto.arima(cumulative_ghg_us_ts), h=3944 + 80)"
+"0",""
+"0","# Plot the forecasted cumulative US motor gasoline GHG emissions"
+"0","plot(forecast_ghg_us_cumulative, type='l', xlab='Year', ylab='Emissions (GtCO2e)', main='Forecasted Cumulative US GHG Emissions from Motor Gasoline: 2023-2100', font.lab=2, font.main=2, family='serif')"

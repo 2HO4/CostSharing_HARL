@@ -1,0 +1,5 @@
+"0","median(forecast(auto.arima(ts(read_excel(""../data/USWeeklyProductSupplied.xlsx"", sheet=""Data 1"", col_names=c(""Date"", ""n_barrels_total"", ""n_barrels_motorgasoline""), range=""A17:C1755"") %>% select(n_barrels_motorgasoline), start=c(1991, 6), frequency=52)), h=3944)$mean)"
+"1","[1]"
+"1"," 10739.85"
+"1","
+"

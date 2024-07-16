@@ -3,7 +3,7 @@
     "path": "~/Thesis/logs/results_models.Rmd",
     "project_path": "results_models.Rmd",
     "type": "r_markdown",
-    "hash": "4278808695",
+    "hash": "1639226075",
     "contents": "",
     "dirty": false,
     "created": 1720188562540.0,
@@ -14,16 +14,16 @@
         "chunk_output_type": "inline",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "564,44",
+        "cursorPosition": "564,51",
         "scrollLine": "558",
-        "last_setup_crc32": "d5ffea032142b02a"
+        "last_setup_crc32": "2b185af22142b02a"
     },
     "folds": "",
-    "lastKnownWriteTime": 1720213866,
+    "lastKnownWriteTime": 1720692184,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1720213866950,
+    "last_content_update": 1720692184764,
     "read_only": false,
     "read_only_alternatives": []
 }

@@ -2,7 +2,7 @@
 .venv*/
 .env*/
 venv*/
-env*/
+./env*/
 
 # Python caches
 __pycache__/

@@ -1,0 +1,5 @@
+"0","# Load the annual global GHG emissions data from ./data/total-ghg-emissions.csv. First row is the header."
+"0","ghg_emissions <- read.csv(""../data/total-ghg-emissions.csv"", header = TRUE)"
+"0",""
+"0","# Print the first few rows of the data"
+"0","head(ghg_emissions)"

@@ -238,10 +238,10 @@ ggsave("results_models_cost_functions.png", plot_combined, width=20, height=3, u
 # Combine the plots into a 2x2 grid and add the legend at the bottom
 plot_combined2 <- arrangeGrob(
   arrangeGrob(
-    plot_agn0 + theme(legend.position="none", plot.margin = unit(c(0, 2, 0, 4), "cm")),
-    plot_agn1 + theme(legend.position="none", plot.margin = unit(c(0, 4, 0, 2), "cm")), 
-    plot_casr + theme(legend.position="none", plot.margin = unit(c(0, 2, 0, 4), "cm")),
-    plot_tere + theme(legend.position="none", plot.margin = unit(c(0, 4, 0, 2), "cm")), 
+    plot_agn0 + theme(legend.position="none", plot.margin = unit(c(0, 0.1, 0, 0), "cm")),
+    plot_agn1 + theme(legend.position="none", plot.margin = unit(c(0, 0, 0, 0.1), "cm")), 
+    plot_casr + theme(legend.position="none", plot.margin = unit(c(0, 0.1, 0, 0), "cm")),
+    plot_tere + theme(legend.position="none", plot.margin = unit(c(0, 0, 0, 0.1), "cm")), 
     ncol=2
   ),
   legend,
@@ -403,8 +403,8 @@ plot_terpc_ho
 # PLot those data in the same plot as a plot with 2 plots inside
 
 plot_combined_pc <- arrangeGrob(
-    plot_terpc_he + theme(plot.margin = unit(c(0, 2, 0, 4), "cm")), 
-    plot_terpc_ho + theme(plot.margin = unit(c(0, 4, 0, 2), "cm")), 
+    plot_terpc_he + theme(plot.margin = unit(c(0, 0.1, 0, 0), "cm")), 
+    plot_terpc_ho + theme(plot.margin = unit(c(0, 0, 0, 0.1), "cm")), 
     ncol=2
 )
 
@@ -561,8 +561,8 @@ plot_ternf_ho
 # PLot those data in the same plot as a plot with 2 plots inside
 
 plot_combined_nf <- arrangeGrob(
-    plot_ternf_he + theme(plot.margin = unit(c(0, 2, 0, 4), "cm")), 
-    plot_ternf_ho + theme(plot.margin = unit(c(0, 4, 0, 2), "cm")), 
+    plot_ternf_he + theme(plot.margin = unit(c(0, 0.1, 0, 0), "cm")), 
+    plot_ternf_ho + theme(plot.margin = unit(c(0, 0, 0, 0.1), "cm")), 
     ncol=2
 )
 

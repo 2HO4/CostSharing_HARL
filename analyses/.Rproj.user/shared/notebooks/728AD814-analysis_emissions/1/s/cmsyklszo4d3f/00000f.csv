@@ -1,0 +1,7 @@
+"0","historical_emissions <- ghg_emissions %>% "
+"0","    filter(Code %in% c(""USA"", ""OWID_WRL"")) %>% "
+"0","    select(Code, Year, Emissions) %>%"
+"0","    pivot_wider(names_from=Code, values_from=Emissions) %>% "
+"0","    mutate(Percentage=round(100 * USA / OWID_WRL, 2))"
+"0",""
+"0","historical_emissions"
