@@ -1,6 +1,6 @@
 """
 
-Cost-sharing environment for the cost-sharing game.
+Cost-sharing environment for the cost-sharing game with (heterogeneous) firms.
 
 """
 
@@ -9,16 +9,16 @@ Cost-sharing environment for the cost-sharing game.
 from copy import copy, deepcopy
 import functools
 from typing import Iterable, Tuple, Union, Callable
-from math import ceil
+from math import ceil, floor
+import warnings
 
 # Data manipulation libraries
 import pandas as pd
 import numpy as np
 
 # Reinforcement learning libraries
-import supersuit as ss
 import gymnasium as gym
-from gymnasium.spaces import Box, Discrete, Dict
+from gymnasium.spaces import Box
 from pettingzoo import ParallelEnv
 from pettingzoo.utils import parallel_to_aec, wrappers
 
@@ -27,215 +27,6 @@ from resources.agent import Firm
 from resources.economics.price_calculation import calculate_price
 from resources.economics.cost_functions import build_cost_function, scale_cost, normalize_cost
 from resources.economics.cost_sharing_algorithms import use_cost_sharing
-
-
-# UTILITIES
-# Constants
-BILLION_EMISSIONS_PER_THOUSAND_BARRELS = 0.373254*(10**3)/(10**9)  # billions of tonnes of CO2 emissions per thousand of gasoline barrels
-
-DETAILS_OF_FIRMS_HETEROGENEOUS = [
-    {"name": "SMALL                         ", "costs_fixed":  500, "cash_flow": 10000},
-    {"name": "SMALL_WITH_CASHFLOW           ", "costs_fixed":  500, "cash_flow": 20000}, 
-    {"name": "SMALL_WITH_INVENTORY          ", "costs_fixed":  500, "cash_flow": 10000, "inventory": 10000},
-    {"name": "SMALL_WITH_CASHFLOW_INVENTORY ", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
-    
-    {"name": "MEDIUM                        ", "costs_fixed": 1000, "cash_flow": 20000},
-    {"name": "MEDIUM_WITH_CASHFLOW          ", "costs_fixed": 1000, "cash_flow": 40000}, 
-    {"name": "MEDIUM_WITH_INVENTORY         ", "costs_fixed": 1000, "cash_flow": 20000, "inventory": 20000},
-    {"name": "MEDIUM_WITH_CASHFLOW_INVENTORY", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    
-    {"name": "BIG                           ", "costs_fixed": 1500, "cash_flow": 40000},
-    {"name": "BIG_WITH_CASHFLOW             ", "costs_fixed": 1500, "cash_flow": 80000}, 
-    {"name": "BIG_WITH_INVENTORY            ", "costs_fixed": 1500, "cash_flow": 40000, "inventory": 40000},
-    {"name": "BIG_WITH_CASHFLOW_INVENTORY   ", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000}
-]
-
-DETAILS_OF_FIRMS_HOMOGENEOUS = [
-    {"name": "FIRM00", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM01", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM02", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM03", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM04", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM05", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM06", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM07", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM08", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM09", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM10", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM11", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-]
-
-DETAILS_OF_FIRMS_DUOPOLY_HOMOGENEOUS = [
-    {"name": "FIRM0", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM1", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-]
-
-DETAILS_OF_FIRMS_DUOPOLY_HETEROGENEOUS = [
-    {"name": "SMALL", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
-    {"name": "BIG  ", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000},
-]
-
-DETAILS_OF_FIRMS_TRIPOLY_HOMOGENEOUS = [
-    {"name": "FIRM0", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM1", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "FIRM2", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-]
-
-DETAILS_OF_FIRMS_TRIPOLY_HETEROGENEOUS = [
-    {"name": "SMALL ", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
-    {"name": "MEDIUM", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-    {"name": "BIG   ", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000},
-]
-
-
-# Helper functions
-def create_environment(class_env, aec=True, render_mode=None):
-    """
-    The env function often wraps the environment in wrappers by default.
-    """
-
-    internal_render_mode = render_mode if render_mode != "ansi" else "human"
-
-    if aec:
-        env = initialize_environment_aec(class_env, render_mode=internal_render_mode)
-
-    else:
-        env = class_env(render_mode=internal_render_mode)
-
-    # This wrapper is only for environments which print results to the terminal
-    if render_mode == "ansi":
-        env = wrappers.CaptureStdoutWrapper(env)
-
-    # This wrapper helps error handling for discrete action spaces
-    env = wrappers.AssertOutOfBoundsWrapper(env)
-
-    # Provides a wide vareity of helpful user errors
-    env = wrappers.OrderEnforcingWrapper(env)
-
-    return env
-
-
-def initialize_environment_aec(class_env, render_mode=None):
-    """
-    To support the AEC API, the raw_env() function just uses the from_parallel
-    function to convert from a ParallelEnv to an AEC env.
-    """
-
-    env = class_env(render_mode=render_mode)
-    env = parallel_to_aec(env)
-
-    return env
-
-
-def find_index_week(year, week):
-    """
-    Calculates the index of a given week in a year.
-
-    Parameters:
-    year (int): The year.
-    week (int): The week number.
-
-    Returns:
-    int: The index of the week in the year.
-
-    Example:
-    >>> find_index_week(2024, 30)
-    2
-    """
-    return (year - 2024)*52 + week - 28
-
-
-def align_names(details):
-    """
-    Aligns the names of the firms so all names have the same length.
-
-    Parameters:
-    details (list): The details of the firms.
-
-    Returns:
-    list: The details of the firms with aligned names.
-
-    Example:
-    >>> align_names([
-        {"name": "SMALL", "costs_fixed": 1000, "cash_flow": 10000}, 
-        {"name": "BIG", "costs_fixed": 3000, "cash_flow": 40000}
-    ])
-    [
-        {"name": "SMALL", "costs_fixed": 1000, "cash_flow": 10000}, 
-        {"name": "BIG  ", "costs_fixed": 3000, "cash_flow": 40000}
-    ]
-    """
-
-    length = max(len(detail["name"]) for detail in details)
-
-    return [{**detail, "name": detail["name"] + " "*(length - len(detail["name"]))} for detail in details]
-
-
-def create_details_firms(
-        type_firms: str='heterogeneous', 
-        n_firms: int=3, 
-        costs_fixed_average: int=1000, 
-        cash_flow_average: int=40000, 
-        inventory_average: int=20000
-    ):
-    """
-    Creates the details of the firms participating in the game.
-
-    Parameters:
-    type_firms (str): The type of firms in the game. It can be either 'heterogeneous' or 'homogeneous'.
-    n_firms (int): The number of firms in the game.
-
-    Returns:
-    list: The details of the firms participating in the game.
-
-    Example:
-    >>> create_details_firms('heterogeneous', 12)
-    [
-        {"name": "SMALL0", "costs_fixed":  500, "cash_flow": 10000},
-        {"name": "SMALL1", "costs_fixed":  500, "cash_flow": 20000}, 
-        {"name": "SMALL2", "costs_fixed":  500, "cash_flow": 10000, "inventory": 10000},
-        {"name": "SMALL3", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
-        {"name": "MEDIUM0", "costs_fixed": 1000, "cash_flow": 20000},
-        {"name": "MEDIUM1", "costs_fixed": 1000, "cash_flow": 40000}, 
-        {"name": "MEDIUM2", "costs_fixed": 1000, "cash_flow": 20000, "inventory": 20000},
-        {"name": "MEDIUM3", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
-        {"name": "BIG0", "costs_fixed": 1500, "cash_flow": 40000},
-        {"name": "BIG1", "costs_fixed": 1500, "cash_flow": 80000}, 
-        {"name": "BIG2", "costs_fixed": 1500, "cash_flow": 40000, "inventory": 40000},
-        {"name": "BIG3", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000}
-    ]
-    """
-
-    n_digits = ceil(np.log10(n_firms))
-
-    if type_firms.lower() == 'homogeneous':
-        return [
-            {"name": f"FIRM{i:0{n_digits}d}", "costs_fixed": costs_fixed_average, "cash_flow": cash_flow_average, "inventory": inventory_average}
-            for i in range(n_firms)
-        ]
-    
-    details_small = {"costs_fixed": costs_fixed_average//2, "cash_flow": cash_flow_average//2, "inventory": inventory_average//2}
-    details_medium = {"costs_fixed": costs_fixed_average, "cash_flow": cash_flow_average, "inventory": inventory_average}
-    details_big = {"costs_fixed": costs_fixed_average*3//2, "cash_flow": cash_flow_average*3//2, "inventory": inventory_average*3//2}
-
-    if n_firms == 2:
-        return [
-            {"name": "SMALL", **details_small},
-            {"name": "BIG", **details_big}
-        ]
-    
-    if n_firms == 3:
-        return [
-            {"name": "SMALL", **details_small},
-            {"name": "MEDIUM", **details_medium},
-            {"name": "BIG", **details_big}
-        ]
-    
-    details_firms = []
-
-    zip(range(n_firms//3), range(details_small['cash_flow']))
-
-    
 
 
 # PETTINGZOO ENVIRONMENT
@@ -250,9 +41,14 @@ class CostSharing(ParallelEnv):
         date_end (int): End date of the game.
         emissions_max (float): Maximum emissions allowed in the game.
         seed (int): Seed for random number generation.
-        price_is_constant (bool): Flag indicating whether the price of gasoline is constant.
+        price_is_constant (bool or float): Flag indicating whether the price of gasoline is constant.
+        price_ceiling (float): The maximum price of gasoline in the game.
+        price_floor (float): The minimum price of gasoline in the game.
         discount_demand (float): The discount rate of the remaining unsatisfied demand.
         portion_cost (float): The value that manipulates the scaling of the total cost of producing gasoline.
+        portion_reward (float): The portion of a firm's earnings that becomes the reward.
+        portion_punishment (float): The portion of total earnings that is taken as a punishment when the demand is not satisfied.
+        reward_final (float): The reward given to a firm when it ends the game.
         quota_production (int): The number of barrels of gasoline that a single firm needs to produce in a week.
         cap_production (int): The maximum number of barrels of gasoline that a single firm can produce in a week.
         hide_others_moves (bool): Flag indicating whether past production of firms should be hidden from each firm.
@@ -261,16 +57,20 @@ class CostSharing(ParallelEnv):
         render_mode (str): Render mode for visualization.
 
     Methods:
+        observation_space(agent): Get the observation space for the specified agent.
+        action_space(agent): Get the action space for the specified agent.
+        update_observations(): Update the observations of the environment.
+        step(actions): Execute a single step in the environment based on the given actions.
+        render(): Render the current state of the environment.
         get_seed(): Get the seed used in the game.
         get_state(): Get the current state of the game.
         reset(seed=None, options=None): Reset the game to its initial state.
-        step(actions): Take a step in the game based on the given actions.
 
     """
 
     metadata = {
         "render_modes": ["human"],
-        "name": "cost_sharing_v1",
+        "name": "cost_sharing_v4",
     }
 
     def __init__(
@@ -281,8 +81,13 @@ class CostSharing(ParallelEnv):
             emissions_max: float=None, 
             seed: int=None, 
             price_is_constant: Union[bool, float]=None, 
+            price_ceiling: float=None,
+            price_floor: float=None,
             discount_demand: float=None, 
             portion_cost: float=None, 
+            portion_reward: float=None,
+            portion_punishment: float=None,
+            reward_final: float=None,
             quota_production: int=None,
             cap_production: int=None, 
             hide_others_moves: bool=None,
@@ -299,8 +104,13 @@ class CostSharing(ParallelEnv):
             emissions_max (float): Maximum emissions allowed in the game.
             seed (int): Seed for random number generation.
             price_is_constant (bool or float): Flag indicating whether the price of gasoline is constant. If it is a float, then it is the 'constant' price of gasoline.
+            price_ceiling (float): The maximum price of gasoline in the game.
+            price_floor (float): The minimum price of gasoline in the game.
             discount_demand (float): The discount rate of the remaining unsatisfied demand. For example, if it is 0.25, then 1/4 of the remaining demand will be carried to the next period.
             portion_cost (float): The value that manipulates the scaling of the total cost of producing gasoline.
+            portion_reward (float): The portion of a firm's earnings that becomes the reward.
+            portion_punishment (float): The portion of total earnings that is taken as a punishment when the demand is not satisfied.
+            reward_final (float): The reward given to a firm when it ends the game.
             quota_production (int): The number of barrels of gasoline that a single firm needs to produce in a week.
             cap_production (int): The maximum number of barrels of gasoline that a single firm can produce in a week.
             hide_others_moves (bool): Flag indicating whether past production of firms should be hidden from each firm.
@@ -309,30 +119,42 @@ class CostSharing(ParallelEnv):
             render_mode (str): Render mode for visualization.
         """
         if details_firms is None:
-            details_firms = DETAILS_OF_FIRMS_HETEROGENEOUS
-        elif type(details_firms) == str:
-            if details_firms.lower() == 'heterogeneous':
-                details_firms = DETAILS_OF_FIRMS_HETEROGENEOUS
-            elif details_firms.lower() == 'homogeneous':
-                details_firms = DETAILS_OF_FIRMS_HOMOGENEOUS
-            else:
-                raise ValueError("The details of the firms need to be either 'heterogeneous' or 'homogeneous'.")
+            details_firms = DETAILS_OF_FIRMS_COMPETITION_HETEROGENEOUS
+        elif type(details_firms) == dict:
+            details_firms = create_details_firms(**details_firms)
         else:
             try:
-                details_firms = list(details_firms)
+                details_firms = align_names(list(details_firms))
             except:
                 raise ValueError("The details of the firms need to be a list of dictionaries.")
         
-        details_firms = align_names(details_firms)
         n_agents = len(details_firms)
         cost_function = 'convex' if cost_function is None else cost_function
         algorithm = 'serial' if algorithm is None else algorithm
         
         # Environment's configuration
         self._seed = 0 if seed is None else seed%10
-        self._price_is_constant = False if price_is_constant is None else price_is_constant
+        self._price_is_constant = False if price_is_constant is None else float(price_is_constant)
+        
+        if self._price_is_constant < 0:
+            raise ValueError("The constant price of gasoline cannot be negative.")
+        if self._price_is_constant and (price_ceiling is not None or price_floor is not None):
+            warnings.warn("The constant price of gasoline is set. The price ceiling and floor will be ignored.")
+        else:
+            self._price_ceiling = np.inf if price_ceiling is None else price_ceiling
+            self._price_floor = 0 if price_floor is None else price_floor
+            if self._price_ceiling < 0:
+                raise ValueError("The price ceiling cannot be negative.")
+            if self._price_floor < 0:
+                raise ValueError("The price floor cannot be negative.")
+            if self._price_ceiling < self._price_floor:
+                raise ValueError("The price ceiling cannot be lower than the price floor.")
+            
         self._discount_demand = 0.1 if discount_demand is None else discount_demand
         self._portion_cost = 1 if portion_cost is None else portion_cost
+        self._portion_reward = 0.00000001 if portion_reward is None else portion_reward
+        self._portion_punishment = 0.00000001 if portion_punishment is None else portion_punishment
+        self._reward_final = 0 if reward_final is None else reward_final
         self._quota_production = 0 if quota_production is None else quota_production
         self._cap_production = np.inf if cap_production is None else cap_production
         self._hide_others_moves = True if hide_others_moves is None else hide_others_moves
@@ -462,7 +284,7 @@ class CostSharing(ParallelEnv):
 
         # Previous results
         self._production_total_prev = self._n_barrels_total
-        self._price_prev = 1
+        self._price_prev = self._price_floor
         self._costs_emissions_shared_prev = 0
         self._statuses_firms_prev = [1 if self._hide_others_moves else 0]*self.n_agents
 
@@ -498,10 +320,12 @@ class CostSharing(ParallelEnv):
         
         # Get production quantities
         quantities_to_produce = {}
+        quantities_negative = {}
         for agent in self._agents_remaining:
             if actions[agent][0] < 0:
+                quantities_negative[agent] = floor(actions[agent][0])
                 terminations[agent] = True
-                rewards[agent] = -1
+                rewards[agent] = -self._reward_final
             elif actions[agent][0] is None:
                 quantities_to_produce[agent] = 0
             else:
@@ -512,7 +336,14 @@ class CostSharing(ParallelEnv):
         n_barrels_total = self._supply_curr
 
         # Calculate price of gasoline
-        price = 1 if (self._price_is_constant or self._supply_curr >= self._demand_real_curr) else calculate_price(self._supply_curr, self._demand_forecast_curr, self._demand_real_curr)
+        if self._price_is_constant:
+            price = self._price_is_constant
+        else:
+            price = calculate_price(self._supply_curr, self._demand_forecast_curr, self._demand_real_curr)
+            if price > self._price_ceiling:
+                price = self._price_ceiling
+            elif price < self._price_floor:
+                price = self._price_floor
 
         # Calculate remaining supply and demand of gasoline
         if self._supply_curr >= self._demand_real_curr:
@@ -521,7 +352,7 @@ class CostSharing(ParallelEnv):
             self._demand_real_curr = 0
         else:
             if self._n_barrels_per_week > self._demand_real_curr:
-                punishment = (self._n_barrels_per_week - self._demand_real_curr)*price/len(self._agents_remaining)/100000000
+                punishment = (self._n_barrels_per_week - self._demand_real_curr)*price/len(self._agents_remaining)*self._portion_punishment
                 for agent in self._agents_remaining:
                     rewards[agent] -= punishment
             n_barrels_sold = self._supply_curr
@@ -554,16 +385,32 @@ class CostSharing(ParallelEnv):
 
             # Update firm's cash flow
             firm.earn(net_earnings)
-            rewards[agent] += net_earnings/100000000
+            rewards[agent] += net_earnings*self._portion_reward
 
             # Check if the firm overproduces and goes bankrupt
             if firm.get_cash_flow() < 0:
-                rewards[agent] = -1
+                rewards[agent] = -self._reward_final
             else:
                 terminations[agent] = False
                 agents_remaining.append(agent)
             
             statuses_firms[agent] = quantity_to_produce
+        
+        for agent, quantity_negative in quantities_negative.items():
+            firm = self._firms_curr[agent]
+            
+            # Update firm's production and sales
+            firm.produce(quantity_negative)
+            firm.sell("all")
+
+            # Calculate net earnings
+            net_earnings = price*quantity_negative
+
+            # Set firm's cash flow to zero
+            firm.earn(-firm.get_cash_flow())
+            rewards[agent] += net_earnings*self._portion_reward
+            
+            statuses_firms[agent] = quantity_negative
         
         # Check if the game ends:
         self._time_curr += 1
@@ -573,10 +420,10 @@ class CostSharing(ParallelEnv):
             observations = {a: [0]*(6 + self.n_agents) for a in self.agents}
             if self._emissions_curr <= self._emissions_max:  # the total emissions are within the limit so all remaining agents receive a reward
                 for agent in agents_remaining:
-                    rewards[agent] += 1
+                    rewards[agent] += self._reward_final
             else:
                 for agent in agents_remaining:
-                    rewards[agent] -= 1
+                    rewards[agent] -= self._reward_final
             infos = {a: {} for a in self.agents}
             
             return observations, rewards, terminations, truncations, infos
@@ -592,7 +439,7 @@ class CostSharing(ParallelEnv):
         elif self._emissions_curr > self._emissions_max:
             terminations = {a: True for a in self.agents}
             for agent in agents_remaining:
-                rewards[agent] = -1
+                rewards[agent] = -self._reward_final
             observations = {a: [0]*(6 + self.n_agents) for a in self.agents}
             infos = {a: {} for a in self.agents}
             
@@ -727,3 +574,226 @@ if __name__ == "__main__":
     
     env = CostSharing(details, price_is_constant=False, render_mode="human")
     parallel_api_test(env, num_cycles=1_000_000)
+
+
+# UTILITIES
+# Constants
+BILLION_EMISSIONS_PER_THOUSAND_BARRELS = 0.373254*(10**3)/(10**9)  # billions of tonnes of CO2 emissions per thousand of gasoline barrels
+
+DETAILS_OF_FIRMS_MONOPOLY_HETEROGENEOUS = [{"name": "FIRM", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000}]
+DETAILS_OF_FIRMS_MONOPOLY_HOMOGENEOUS = [{"name": "FIRM", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000}]
+
+DETAILS_OF_FIRMS_DUOPOLY_HETEROGENEOUS = [
+    {"name": "SMALL", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
+    {"name": "BIG  ", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000},
+]
+
+DETAILS_OF_FIRMS_DUOPOLY_HOMOGENEOUS = [
+    {"name": "FIRM0", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM1", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+]
+
+DETAILS_OF_FIRMS_TRIPOLY_HETEROGENEOUS = [
+    {"name": "SMALL ", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
+    {"name": "MEDIUM", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "BIG   ", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000},
+]
+
+DETAILS_OF_FIRMS_TRIPOLY_HOMOGENEOUS = [
+    {"name": "FIRM0", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM1", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM2", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+]
+
+DETAILS_OF_FIRMS_OLIGOPOLY_HETEROGENEOUS = [
+    {"name": "TINY", "costs_fixed":  250, "cash_flow": 10000, "inventory":  5000},
+    {"name": "SMALL", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
+    {"name": "MEDIUM", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "BIG", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000},
+]
+
+DETAILS_OF_FIRMS_OLIGOPOLY_HOMOGENEOUS = [
+    {"name": "FIRM0", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM1", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM2", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM3", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+]
+
+DETAILS_OF_FIRMS_COMPETITION_HETEROGENEOUS = [
+    {"name": "SMALL                         ", "costs_fixed":  500, "cash_flow": 10000},
+    {"name": "SMALL_WITH_CASHFLOW           ", "costs_fixed":  500, "cash_flow": 20000}, 
+    {"name": "SMALL_WITH_INVENTORY          ", "costs_fixed":  500, "cash_flow": 10000, "inventory": 10000},
+    {"name": "SMALL_WITH_CASHFLOW_INVENTORY ", "costs_fixed":  500, "cash_flow": 20000, "inventory": 10000},
+    
+    {"name": "MEDIUM                        ", "costs_fixed": 1000, "cash_flow": 20000},
+    {"name": "MEDIUM_WITH_CASHFLOW          ", "costs_fixed": 1000, "cash_flow": 40000}, 
+    {"name": "MEDIUM_WITH_INVENTORY         ", "costs_fixed": 1000, "cash_flow": 20000, "inventory": 20000},
+    {"name": "MEDIUM_WITH_CASHFLOW_INVENTORY", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    
+    {"name": "BIG                           ", "costs_fixed": 1500, "cash_flow": 40000},
+    {"name": "BIG_WITH_CASHFLOW             ", "costs_fixed": 1500, "cash_flow": 80000}, 
+    {"name": "BIG_WITH_INVENTORY            ", "costs_fixed": 1500, "cash_flow": 40000, "inventory": 40000},
+    {"name": "BIG_WITH_CASHFLOW_INVENTORY   ", "costs_fixed": 1500, "cash_flow": 80000, "inventory": 40000}
+]
+
+DETAILS_OF_FIRMS_COMPETITION_HOMOGENEOUS = [
+    {"name": "FIRM00", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM01", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM02", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM03", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM04", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM05", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM06", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM07", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM08", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM09", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM10", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+    {"name": "FIRM11", "costs_fixed": 1000, "cash_flow": 40000, "inventory": 20000},
+]
+
+
+# Helper functions
+def create_environment(class_env, aec=True, render_mode=None):
+    """
+    The env function often wraps the environment in wrappers by default.
+    """
+
+    internal_render_mode = render_mode if render_mode != "ansi" else "human"
+
+    if aec:
+        env = initialize_environment_aec(class_env, render_mode=internal_render_mode)
+
+    else:
+        env = class_env(render_mode=internal_render_mode)
+
+    # This wrapper is only for environments which print results to the terminal
+    if render_mode == "ansi":
+        env = wrappers.CaptureStdoutWrapper(env)
+
+    # This wrapper helps error handling for discrete action spaces
+    env = wrappers.AssertOutOfBoundsWrapper(env)
+
+    # Provides a wide vareity of helpful user errors
+    env = wrappers.OrderEnforcingWrapper(env)
+
+    return env
+
+
+def initialize_environment_aec(class_env, render_mode=None):
+    """
+    To support the AEC API, the raw_env() function just uses the from_parallel
+    function to convert from a ParallelEnv to an AEC env.
+    """
+
+    env = class_env(render_mode=render_mode)
+    env = parallel_to_aec(env)
+
+    return env
+
+
+def find_index_week(year, week):
+    """
+    Calculates the index of a given week in a year.
+
+    Parameters:
+    year (int): The year.
+    week (int): The week number.
+
+    Returns:
+    int: The index of the week in the year.
+
+    Example:
+    >>> find_index_week(2024, 30)
+    2
+    """
+    return (year - 2024)*52 + week - 28
+
+
+def align_names(details):
+    """
+    Aligns the names of the firms so all names have the same length.
+
+    Parameters:
+    details (list): The details of the firms.
+
+    Returns:
+    list: The details of the firms with aligned names.
+
+    Example:
+    >>> align_names([
+        {"name": "SMALL", "costs_fixed": 1000, "cash_flow": 10000}, 
+        {"name": "BIG", "costs_fixed": 3000, "cash_flow": 40000}
+    ])
+    [
+        {"name": "SMALL", "costs_fixed": 1000, "cash_flow": 10000}, 
+        {"name": "BIG  ", "costs_fixed": 3000, "cash_flow": 40000}
+    ]
+    """
+
+    length = max(len(detail["name"]) for detail in details)
+
+    return [{**detail, "name": detail["name"] + " "*(length - len(detail["name"]))} for detail in details]
+
+
+def create_details_firms(
+        n_firms: Union[int, str], 
+        type_firms: str, 
+        costs_fixed_average: int=None, 
+        cash_flow_average: int=None, 
+        inventory_average: int=None
+    ):
+    """
+    Creates the details of the firms participating in the game.
+
+    Parameters:
+    n_firms (int or str): The number of firms in the game.
+    type_firms (str): The type of firms in the game. It can be either 'heterogeneous' or 'homogeneous'.
+
+    Returns:
+    list: The details of the firms participating in the game.
+
+    Example:
+    >>> np.random.seed(0)
+    >>> create_details_firms(3, 'heterogeneous')
+    [
+        {'name': 'FIRM0', 'costs_fixed': 1294, 'cash_flow': 45335, 'inventory': 26525},
+        {'name': 'FIRM1', 'costs_fixed': 1373, 'cash_flow': 64901, 'inventory': 13485},
+        {'name': 'FIRM2', 'costs_fixed': 1158, 'cash_flow': 37982, 'inventory': 19312}
+    ]
+    """
+
+    if type(n_firms) == str:
+        if n_firms.lower() not in ['monopoly', 'duopoly', 'tripoly', 'oligopoly', 'competition']:
+            raise ValueError("The number of firms needs to be either an integer or one of the following: 'monopoly', 'duopoly', 'tripoly', 'oligopoly', 'competition'.")
+        if type_firms.lower() not in ['heterogeneous', 'homogeneous']:
+            raise ValueError("The type of firms needs to be either 'heterogeneous' or 'homogeneous'.")
+        return align_names(globals()[f"DETAILS_OF_FIRMS_{n_firms.upper()}_{type_firms.upper()}"])
+
+    if costs_fixed_average is None:
+        costs_fixed_average = 1000
+
+    if cash_flow_average is None:
+        cash_flow_average = 40000
+
+    if inventory_average is None:
+        inventory_average = 20000
+
+    n_digits = ceil(np.log10(n_firms))
+
+    if type_firms.lower() == 'homogeneous':
+        return align_names([
+            {"name": f"FIRM{i:0{n_digits}d}", "costs_fixed": costs_fixed_average, "cash_flow": cash_flow_average, "inventory": inventory_average}
+            for i in range(n_firms)
+        ])
+
+    details_firms = []
+
+    for i in range(n_firms):
+        details_firms.append({
+            "name": f"FIRM{i:0{n_digits}d}", 
+            "costs_fixed": max(0, round(np.random.normal(loc=costs_fixed_average, scale=costs_fixed_average/6))), 
+            "cash_flow": max(0, round(np.random.normal(loc=cash_flow_average, scale=cash_flow_average/3))), 
+            "inventory": max(0, round(np.random.normal(loc=inventory_average, scale=inventory_average/3)))
+        })
+    
+    return align_names(details_firms)

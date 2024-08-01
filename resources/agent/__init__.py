@@ -25,13 +25,15 @@ class Firm:
             Args:
                 quantity (int): The quantity of barrels to produce.
             """
-            if quantity:
+            if quantity > 0:
                 self._cash_flow -= self._costs_fixed
                 self._inventory += quantity
                 self._last_actions = f'produced {quantity}K barrel(s)'
-            else:
+            elif not quantity:
                 self._cash_flow -= self._costs_fixed//2
                 self._last_actions = 'produced nothing'
+            else:
+                self._last_actions = 'produced {quantity}K barrel(s) (INVALID)'
     
     def sell(self, quantity):
         """

@@ -66,3 +66,7 @@ back-up/
 
 # HARL library
 HARL/
+
+# Miscellaneous
+plots/
+results/

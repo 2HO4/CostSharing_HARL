@@ -1,4 +1,5 @@
 # This is the custom configuration file for the algorithm used in HARL.
+# 10 available algorithms: haa2c, had3qn, haddpg, happo, hasac, hatd3, hatrpo, maddpg, mappo, matd3
 algorithm: 
   name: happo
 seed:
@@ -8,7 +9,7 @@ seed:
   seed: 1
 device:
   # whether to use CUDA
-  cuda: False
+  cuda: True
   # whether to set CUDA deterministic
   cuda_deterministic: True
   # arg to torch.set_num_threads
@@ -16,108 +17,135 @@ device:
 train:
   # number of parallel environments for training data collection
   n_rollout_threads: 10
-  # number of total training steps
-  num_env_steps: 3945000
-  # number of steps per environment per training data collection
-  episode_length: 3945
+  # number of total steps
+  num_env_steps: 39450
   # logging interval
   log_interval: 1
   # evaluation interval
   eval_interval: 10
-  # whether to use ValueNorm
-  use_valuenorm: True
   # whether to use linear learning rate decay
   use_linear_lr_decay: True
   # whether to consider the case of truncation when an episode is done
   use_proper_time_limits: True
   # if set, load models from this directory; otherwise, randomly initialise the models
-  model_dir: 
+  model_dir:
+  # number of steps per environment per training data collection
+  episode_length: 3945  # haa2c, happo, hatrpo, mappo
+  # whether to use ValueNorm
+  use_valuenorm: True  # haa2c, happo, hasac, hatrpo, mappo
+  warmup_steps: 10000  # had3qn, haddpg, hasac, hatd3, maddpg, matd3
+  train_interval: 50  # had3qn, haddpg, hasac, hatd3, maddpg, matd3
+  update_per_train: 1  # had3qn, haddpg, hasac, hatd3, maddpg, matd3
 eval:
   # whether to use evaluation
   use_eval: True
   # number of parallel environments for evaluation
   n_eval_rollout_threads: 10
   # number of episodes per evaluation
-  eval_episodes: 1
+  eval_episodes: 10
 render:
   # whether to use render
   use_render: False
   # number of episodes to render
   render_episodes: 10
 model:
+  # actor learning rate
+  lr: 0.001
+  # critic learning rate
+  critic_lr: 0.001
   # network parameters
   # hidden sizes for mlp module in the network
-  hidden_sizes: [128, 128, 128, 128]
+  hidden_sizes: [128, 128, 128, 128]  # haa2c, haddpg, happo, hasac, hatd3, hatrpo, maddpg, mappo, matd3
+  base_hidden_sizes: [128, 128]  # had3qn
   # activation function, choose from sigmoid, tanh, relu, leaky_relu, selu
-  activation_func: relu
+  activation_func: relu  # haa2c, haddpg, happo, hasac, hatd3, hatrpo, maddpg, mappo, matd3
+  base_activation_func: relu  # had3qn
   # whether to use feature normalization
-  use_feature_normalization: True
+  use_feature_normalization: True  # haa2c, happo, hasac, hatrpo, mappo
   # initialization method for network parameters, choose from xavier_uniform_, orthogonal_, ...
-  initialization_method: orthogonal_
+  initialization_method: orthogonal_  # haa2c, happo, hasac, hatrpo, mappo
   # gain of the output layer of the network.
-  gain: 0.01
+  gain: 0.01  # haa2c, happo, hasac, hatrpo, mappo
   # recurrent parameters
   # whether to use rnn policy (data is not chunked for training)
-  use_naive_recurrent_policy: False
+  use_naive_recurrent_policy: False  # haa2c, happo, hatrpo, mappo
   # whether to use rnn policy (data is chunked for training)
-  use_recurrent_policy: False
+  use_recurrent_policy: False  # haa2c, happo, hatrpo, mappo
   # number of recurrent layers
-  recurrent_n: 1
+  recurrent_n: 1  # haa2c, happo, hatrpo, mappo
   # length of data chunk; only useful when use_recurrent_policy is True; episode_length has to be a multiple of data_chunk_length
-  data_chunk_length: 10
+  data_chunk_length: 10  # haa2c, happo, hatrpo, mappo
   # optimizer parameters
-  # actor learning rate
-  lr: 0.5
-  # critic learning rate
-  critic_lr: 0.5
   # eps in Adam
-  opti_eps: 0.00001
+  opti_eps: 0.00001  # haa2c, happo, hatrpo, mappo
   # weight_decay in Adam
-  weight_decay: 0
+  weight_decay: 0  # haa2c, happo, hatrpo, mappo
   # parameters of diagonal Gaussian distribution
-  std_x_coef: 1
+  std_x_coef: 1  # haa2c, happo, hatrpo, mappo
   # parameters of diagonal Gaussian distribution
-  std_y_coef: 0.5
+  std_y_coef: 0.5  # haa2c, happo, hatrpo, mappo
+  dueling_v_hidden_sizes: [128]  # had3qn
+  dueling_a_hidden_sizes: [128]  # had3qn
+  dueling_v_activation_func: hardswish  # had3qn
+  dueling_a_activation_func: hardswish  # had3qn
+  final_activation_func: tanh  # haddpg, hasac, hatd3, maddpg, matd3
 algo:
-  # ppo parameters
-  # number of epochs for actor update
-  ppo_epoch: 5
-  # number of epochs for critic update
-  critic_epoch: 5
-  # whether to use clipped value loss
-  use_clipped_value_loss: True
-  # clip parameter
-  clip_param: 0.2
-  # number of mini-batches per epoch for actor update
-  actor_num_mini_batch: 1
-  # number of mini-batches per epoch for critic update
-  critic_num_mini_batch: 1
-  # coefficient for entropy term in actor loss
-  entropy_coef: 0.01
-  # coefficient for value loss
-  value_loss_coef: 1
-  # whether to clip gradient norm
-  use_max_grad_norm: True
-  # max gradient norm
-  max_grad_norm: 10.0
-  # whether to use Generalized Advantage Estimation (GAE)
-  use_gae: True
-  # discount factor
-  gamma: 0.99
-  # GAE lambda
-  gae_lambda: 0.95
-  # whether to use huber loss
-  use_huber_loss: True
-  # whether to use policy active masks
-  use_policy_active_masks: True
-  # huber delta
-  huber_delta: 10.0
-  # method of aggregating the probability of multi-dimensional actions, choose from prod, mean
-  action_aggregation: prod
   # whether to share parameter among actors
   share_param: False
   # whether to use a fixed optimisation order
-  fixed_order: False
+  fixed_order: True
+  # discount factor
+  gamma: 0.99
+  # a2c parameters
+  # number of epochs for actor update
+  a2c_epoch: 5  # haa2c
+  # number of epochs for critic update
+  critic_epoch: 5  # haa2c, happo, hatrpo, mappo
+  # whether to use clipped value loss
+  use_clipped_value_loss: True  # haa2c, happo, hatrpo, mappo
+  # clip parameter
+  clip_param: 0.2  # haa2c, happo, hatrpo, mappo
+  # number of mini-batches per epoch for actor update
+  actor_num_mini_batch: 1  # haa2c, happo, mappo
+  # number of mini-batches per epoch for critic update
+  critic_num_mini_batch: 1  # haa2c, happo, hatrpo, mappo
+  # coefficient for entropy term in actor loss
+  entropy_coef: 0.01  # haa2c, happo, mappo
+  # coefficient for value loss
+  value_loss_coef: 1  # haa2c, happo, hatrpo, mappo
+  # whether to clip gradient norm
+  use_max_grad_norm: True  # haa2c, happo, hatrpo, mappo
+  # max gradient norm
+  max_grad_norm: 10.0
+  # whether to use Generalized Advantage Estimation (GAE)
+  use_gae: True  # haa2c, happo, hatrpo, mappo
+  # GAE lambda
+  gae_lambda: 0.95  # haa2c, happo, hatrpo, mappo
+  # whether to use huber loss
+  use_huber_loss: True  # haa2c, happo, hasac, hatrpo, mappo
+  # whether to use policy active masks
+  use_policy_active_masks: True  # haa2c, happo, hasac, hatrpo, mappo
+  # huber delta
+  huber_delta: 10.0  # haa2c, happo, hasac, hatrpo, mappo
+  # method of aggregating the probability of multi-dimensional actions, choose from prod, mean
+  action_aggregation: prod  # haa2c, happo, hatrpo, mappo
+  buffer_size: 1000000  # had3qn, haddpg, hasac, hatd3, maddpg, matd3
+  batch_size: 1000  # had3qn, haddpg, hasac, hatd3, maddpg, matd3
+  polyak: 0.005  # had3qn, haddpg, hasac, hatd3, maddpg, matd3
+  epsilon: 0.05  # had3qn
+  n_step: 1  # had3qn, haddpg, hasac, hatd3, maddpg, matd3
+  expl_noise: 0.1  # haddpg, hatd3, maddpg, matd3
+  ppo_epoch: 5  # happo, mappo
+  auto_alpha: False
+  alpha: 0.001  # hasac
+  alpha_lr: 0.0003  # hasac
+  policy_noise: 0.2  # hatd3, matd3
+  noise_clip: 0.5  # hatd3, matd3
+  policy_freq: 2  # hatd3, matd3
+  kl_threshold: 0.01  # hatrpo
+  ls_step: 10  # hatrpo
+  accept_ratio: 0.5  # hatrpo
+  backtrack_coeff: 0.8  # hatrpo
 logger:
   # logging directory
-  log_dir: "./results"
+  log_dir: ./results

@@ -1,97 +1,33 @@
 # This is the custom configuration file for the algorithm used in HARL.
 
-# the details of firms can be either "heterogeneous" or "homogeneous" or a list of details for each firm
-# details_firms: homogeneous
+# the details of firms can be either a dictionary of arguments in function create_details_firms() or a list of details for each firm
+# details_firms:
+#  n_firms: 4  # the number of firms can also be specified as names with pre-defined details: "monopoly", "duopoly", "triopoly", "oligopoly", "competition"
+#  type_firms: "heterogeneous"
+#  costs_fixed_average:  # default: 1000
+#  cash_flow_average:  # default: 40000
+#  inventory_average:  # default: 20000
+
 details_firms:
-  # - name: FIRM
-  #   costs_fixed: 0
-  #   cash_flow: 100000
-  #   inventory: 50000
+  - name: FIRM00
+    costs_fixed: 250
+    cash_flow: 10000
+    inventory: 5000
 
- - name: FIRM00
-   costs_fixed: 1000
-   cash_flow: 40000
-   inventory: 20000
+  - name: FIRM01
+    costs_fixed: 500
+    cash_flow: 20000
+    inventory: 10000
 
- - name: FIRM01
-   costs_fixed: 1000
-   cash_flow: 40000
-   inventory: 20000
+  - name: FIRM02
+    costs_fixed: 1000
+    cash_flow: 40000
+    inventory: 20000
 
-#  - name: FIRM01
-#    costs_fixed: 5000
-#    cash_flow: 100000
-#    inventory: 50000
-
- - name: FIRM02
-   costs_fixed: 1000
-   cash_flow: 40000
-   inventory: 20000
-
- - name: FIRM03
-   costs_fixed: 1000
-   cash_flow: 40000
-   inventory: 20000
-
-#   - name: SMALL
-#     costs_fixed: 1000
-#     cash_flow: 10000
-#     inventory: 0
-
-#   - name: SMALL_WITH_CASHFLOW
-#     costs_fixed: 1000
-#     cash_flow: 20000
-#     inventory: 0
-
-#   - name: SMALL_WITH_INVENTORY
-#     costs_fixed: 1000
-#     cash_flow: 10000
-#     inventory: 10000
-
-#   - name: SMALL_WITH_CASHFLOW_INVENTORY
-#     costs_fixed: 1000
-#     cash_flow: 20000
-#     inventory: 10000
-
-#   - name: MEDIUM
-#     costs_fixed: 2000
-#     cash_flow: 20000
-#     inventory: 0
-
-#   - name: MEDIUM_WITH_CASHFLOW
-#     costs_fixed: 2000
-#     cash_flow: 40000
-#     inventory: 0
-
-#   - name: MEDIUM_WITH_INVENTORY
-#     costs_fixed: 2000
-#     cash_flow: 20000
-#     inventory: 20000
-
-#   - name: MEDIUM_WITH_CASHFLOW_INVENTORY
-#     costs_fixed: 2000
-#     cash_flow: 40000
-#     inventory: 20000
-
-#   - name: BIG
-#     costs_fixed: 3000
-#     cash_flow: 40000
-#     inventory: 0
-
-#   - name: BIG_WITH_CASHFLOW
-#     costs_fixed: 3000
-#     cash_flow: 80000
-#     inventory: 0
-
-#   - name: BIG_WITH_INVENTORY
-#     costs_fixed: 3000
-#     cash_flow: 40000
-#     inventory: 40000
-
-#   - name: BIG_WITH_CASHFLOW_INVENTORY
-#     costs_fixed: 2000
-#     cash_flow: 80000
-#     inventory: 4000 
+  - name: FIRM03
+    costs_fixed: 1500
+    cash_flow: 80000
+    inventory: 40000
 
 # the start date in (year, week)
 # a year is considered to be exactly 52 weeks, hence, the week can be from 1 to 52
@@ -112,17 +48,36 @@ emissions_max: 47.62  # 47.62 = (2000 - 41) (GtCO2e) * 11.05% (%US) * 22% (%gaso
 # the number to initialize pseudorandom number generator
 seed: 0
 
-# whether the price is set to constant (at 1) or not
+# whether the price is set to constant or not
 # if the price is not constant, it will be estimated based on a demand-supply model derived from Espey's (1996) meta-analysis
-price_is_constant: True
+price_is_constant:
+
+# the price ceiling of gasoline
+# if left empty, it is defaulted to 'infinite'
+price_ceiling:
+
+# the price floor of gasoline
+# if left empty, it is defaulted to '0'
+price_floor:
 
 # the discount rate of the remaining demand that could not be supplied in this week
 discount_demand: 0.1
 
 # the parameter that scales the total production cost of gasoline shared among firms
-# initially, it is set so that the cost of producing the ideal/maximum-allowed barrels of gasoline equals the price per barrel
+# initially, the production cost is set so that the cost of producing the ideal/maximum-allowed barrels of gasoline equals the price per barrel
 # hence, it represents the proportion of that price charged to firms for each barrel produced
 portion_cost: 1
+
+# the parameter that scales the amount of earnings of a firm to be attributed as reward
+portion_reward: 0.00000001
+
+# the parameter that scales the amount of total earnings that is taken as a punishment when the demand is not satisfied
+# this total punishment is then equally distributed among all remaining firms
+portion_punishment: 0.00000001
+
+# the final reward or punishment that given to a firm when it finishes the game
+# if left empty, it is defaulted to '0'
+reward_final: 1
 
 # the minimum number of barrels of gasoline a single firm must produce in a week
 # if left empty, it is defaulted to '0'
