@@ -1,13 +1,7 @@
 # script to be run at the start of the project to prepare the project of multi-agent reinforcement learning for cost-sharing mechanism
 
 import argparse
-import os
-import shutil
-import sys
 import subprocess
-import glob
-import pefile
-import re
 
 
 def main():
@@ -38,6 +32,17 @@ def main():
 
     args, unparsed_args = parser.parse_known_args()
 
+    def process(arg):
+        try:
+            return eval(arg)
+        except:
+            return arg
+
+    keys = [k[2:] for k in unparsed_args[0::2]]  # remove -- from argument
+    values = [process(v) for v in unparsed_args[1::2]]
+    unparsed_dict = {k: v for k, v in zip(keys, values)}
+    args = vars(args)  # convert to dict
+
     # Install required packages for the project
     if args['venv'] in ['conda', 'mamba']:
         subprocess.run([args['venv'], 'env', 'create', '-f', 'environment.yml', '-p', '.venv'])
@@ -47,8 +52,10 @@ def main():
         subprocess.run(['pip', 'install', 'virtualenv'])
         subprocess.run(['virtualenv', '.venv'])
         subprocess.run(['source', '.venv/bin/activate'])
+        subprocess.run(['pip', 'install', 'python==3.8'])
         subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
     else:
+        subprocess.run(['pip', 'install', 'python==3.8'])
         subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
     
     # Install required packages for GPU support
@@ -61,9 +68,13 @@ def main():
 
     # Clone the required HARL repository
     subprocess.run(['git', 'clone', 'https://github.com/PKU-MARL/HARL.git'])
-    subprocess.run(['cd', 'HARL'])
+    subprocess.call('cd HARL', shell=True)
     subprocess.run(['pip', 'install', '-e', '.'])
-    subprocess.run(['cd', '..'])
+    subprocess.call('cd ..', shell=True)
 
     # Move the modified files to the HARL repository
     subprocess.run(['python', 'move_modified_files.py'])
+
+
+if __name__ == '__main__':
+    main()
