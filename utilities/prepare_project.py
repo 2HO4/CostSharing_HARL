@@ -61,11 +61,11 @@ def main():
     
     # Install required packages for GPU support
     if args['gpu']:
-        subprocess.run(['pip' 'install', 'torch==2.3.0', 'torchvision', 'torchaudio', '--index-url', 'https://download.pytorch.org/whl/cu118'])
+        subprocess.Popen(['pip', 'install', 'torch==2.3.0', 'torchvision', 'torchaudio', '--index-url', 'https://download.pytorch.org/whl/cu118'])
     
     # Fix Pytorch DLL for Nvidia GPU
     if args['fix_nv']:
-        subprocess.run(['python', 'utilities/fix_Nvidia.py', '--input', 'torch*.dll', '--backup'])
+        subprocess.Popen(['python', 'utilities/fix_Nvidia.py', '--input', 'torch*.dll', '--backup'])
 
     # Clone the required HARL repository
     subprocess.run(['git', 'clone', 'https://github.com/PKU-MARL/HARL.git'])
