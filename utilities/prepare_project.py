@@ -65,7 +65,7 @@ def main():
     
     # Fix Pytorch DLL for Nvidia GPU
     if args['fix_nv']:
-        subprocess.Popen(['python', 'fix_Nvidia.py', '--input', 'torch*.dll', '--backup'])
+        subprocess.Popen(['python', 'utilities/fix_Nvidia.py', '--input', 'torch*.dll', '--backup'])
 
     # Clone the required HARL repository
     subprocess.run(['git', 'clone', 'https://github.com/PKU-MARL/HARL.git'])
