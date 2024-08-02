@@ -43,6 +43,9 @@ def main():
     
     # Install required packages for the project
     if is_GoogleColab():
+        subprocess.run(['rm', '-rf', '*'])
+        subprocess.run(['git', 'clone', 'https://github.com/2HO4/CostSharing_HARL.git'])
+        os.chdir('CostSharing_HARL')
         subprocess.run(['pip', 'install', 'numpy==1.23.5', 'pettingzoo==1.22.2', 'supersuit==3.7.0', 'pefile==2023.2.7'])
 
     elif args['venv'] in ['conda', 'mamba']:
