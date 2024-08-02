@@ -43,7 +43,7 @@ def main():
     
     # Install required packages for the project
     if is_GoogleColab():
-        subprocess.run(['pip', 'install', 'numpy==1.23.5', 'pettingzoo==1.22.2', 'supersuit==3.7.0'])
+        subprocess.run(['pip', 'install', 'numpy==1.23.5', 'pettingzoo==1.22.2', 'supersuit==3.7.0', 'pefile==2023.2.7'])
 
     elif args['venv'] in ['conda', 'mamba']:
         subprocess.run([args['venv'], 'env', 'create', '-f', 'environment.yml', '-p', '.venv'])
