@@ -72,6 +72,7 @@ def main():
             algo_cfg_path = os.path.join("resources", "configs", f"algorithm.yaml")
             with open(algo_cfg_path, "r", encoding="utf-8") as file:
                 algo_args = yaml.load(file, Loader=yaml.FullLoader)
+            args['algo'] = algo_args['algorithm']['name']
         else:
             algo_cfg_path = os.path.join( "HARL", "harl", "configs", "algos_cfgs", f"{args['algo']}.yaml")
             with open(algo_cfg_path, "r", encoding="utf-8") as file:
@@ -82,31 +83,33 @@ def main():
             with open(env_cfg_path, "r", encoding="utf-8") as file:
                 env_args = yaml.load(file, Loader=yaml.FullLoader)
         elif args['env'] == 'default':
-            env_args = {}
-
-        if args['algo'] == 'custom':
-            args['algo'] = algo_args['algorithm']['name']
-        
+            env_args = {arg: None for arg in ['details_firms', 'date_start', 'date_end', 'emissions_max', 'seed', 'price_is_constant', 'price_ceiling', 'price_floor', 'discount_demand', 'portion_cost', 'portion_reward', 'portion_punishment', 'reward_final', 'quota_production', 'cap_production', 'hide_others_moves', 'cost_function', 'algorithm', 'render_mode']}
         args['env'] = 'cost_sharing'
-    # update_args(unparsed_dict, algo_args, env_args)  # update args from command line
-
-    # start training
+    
+    update_args(unparsed_dict, algo_args, env_args)  # update args from command line
+    
+    # import the runner
     from harl.runners import RUNNER_REGISTRY
     
     runner = RUNNER_REGISTRY[args["algo"]](args, algo_args, env_args)
+    
+    # render the environment
+    if algo_args["render"]["use_render"]:
+        runner.run()
+        runner.close()
+        return
+    
+    # train the model
     continue_running = True
     
     while continue_running:
         runner.run()
         
         continue_running = input("Continue training? (y/n): ") == "y"
-
-    # for i in range(2, 4):
-    #     runner.envs.seed(i)
-    #     print('Seed:', i)
-    #     runner.run()
-
+    
     runner.close()
+
+    return
 
 
 if __name__ == "__main__":
