@@ -2,6 +2,7 @@
 
 import argparse
 import subprocess
+import os
 
 
 def main():
@@ -42,7 +43,7 @@ def main():
     
     # Install required packages for the project
     if is_GoogleColab():
-        subprocess.run(['pip', 'install', 'numpy==1.23.5', 'pettingzoo=1.22.2', 'supersuit==3.7.0'])
+        subprocess.run(['pip', 'install', 'numpy==1.23.5', 'pettingzoo==1.22.2', 'supersuit==3.7.0'])
 
     elif args['venv'] in ['conda', 'mamba']:
         subprocess.run([args['venv'], 'env', 'create', '-f', 'environment.yml', '-p', '.venv'])
@@ -68,12 +69,14 @@ def main():
 
     # Clone the required HARL repository
     subprocess.run(['git', 'clone', 'https://github.com/PKU-MARL/HARL.git'])
-    subprocess.call('cd HARL', shell=True)
+    # subprocess.call('cd HARL', shell=True)
+    os.chdir('HARL')
     subprocess.run(['pip', 'install', '-e', '.'])
-    subprocess.call('cd ..', shell=True)
+    # subprocess.call('cd ..', shell=True)
+    os.chdir('..')
 
     # Move the modified files to the HARL repository
-    subprocess.run(['python', 'move_modified_files.py'])
+    subprocess.run(['python', 'utilities/move_modified_files.py'])
 
 
 if __name__ == '__main__':
