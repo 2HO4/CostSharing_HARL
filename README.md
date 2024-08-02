@@ -1,4 +1,4 @@
-# **Global Warming Mitigation: An Empirical Multi-Agent Reinforcement Learning Approach --- Bachelor's Thesis**
+# **Global Warming Mitigation: An Empirical Multi-Agent Reinforcement Learning Approach**
 
 This project is part of a Bachelor's thesis for the Econometrics and Data Science programme, which aims to investigate the efficacy of serial cost-sharing taxation policies in regulating emission levels from petroleum industry production using a heterogeneous-agent reinforcement learning (HARL) model. The goal of this project is to explore how different serial cost-sharing taxation policies can regulate emission levels in the petroleum industry. By leveraging a multi-agent reinforcement learning approach, the study identifies key factors influencing firms’ economic viability while achieving environmental targets.
 
