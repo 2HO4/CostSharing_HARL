@@ -31,31 +31,31 @@ def main():
     )
 
     args, unparsed_args = parser.parse_known_args()
-
-    def process(arg):
-        try:
-            return eval(arg)
-        except:
-            return arg
-
-    keys = [k[2:] for k in unparsed_args[0::2]]  # remove -- from argument
-    values = [process(v) for v in unparsed_args[1::2]]
-    unparsed_dict = {k: v for k, v in zip(keys, values)}
     args = vars(args)  # convert to dict
 
+    def is_GoogleColab():
+        try:
+            import google.colab
+            return True
+        except ImportError:
+            return False
+    
     # Install required packages for the project
-    if args['venv'] in ['conda', 'mamba']:
+    if is_GoogleColab():
+        subprocess.run(['pip', 'install', 'numpy==1.23.5', 'pettingzoo=1.22.2', 'supersuit==3.7.0'])
+
+    elif args['venv'] in ['conda', 'mamba']:
         subprocess.run([args['venv'], 'env', 'create', '-f', 'environment.yml', '-p', '.venv'])
         subprocess.run([args['venv'], 'activate', '.venv'])
         subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
+
     elif args['venv'] == 'virtualenv':
         subprocess.run(['pip', 'install', 'virtualenv'])
         subprocess.run(['virtualenv', '.venv'])
         subprocess.run(['source', '.venv/bin/activate'])
-        subprocess.run(['pip', 'install', 'python==3.8'])
         subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
+        
     else:
-        subprocess.run(['pip', 'install', 'python==3.8'])
         subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
     
     # Install required packages for GPU support
