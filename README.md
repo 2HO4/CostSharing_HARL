@@ -5,7 +5,7 @@
 
 # **<p align="center">Global Warming Mitigation: An Empirical Multi-Agent Reinforcement Learning Approach</p>**
 
-*<p align="justify">This project is part of a Bachelor's thesis for the Econometrics and Data Science programme, which aims to investigate the efficacy of serial cost-sharing taxation policies in regulating emission levels from petroleum industry production using the advanced [Heterogeneous-Agent Reinforcement Learning (HARL)](https://github.com/PKU-MARL/HARL) model. The goal of this project is to explore how different serial cost-sharing taxation policies can regulate emission levels in the petroleum industry. By leveraging a multi-agent reinforcement learning approach, the study identifies key factors influencing firms’ economic viability while achieving environmental targets. The thesis document can be accessed in the `docs` folder.</p>*
+*<p align="justify">This project is part of a Bachelor's thesis for the Econometrics and Data Science programme at the University of Amsterdam, which aims to investigate the efficacy of serial cost-sharing taxation policies in regulating emission levels from petroleum industry production using the advanced [Heterogeneous-Agent Reinforcement Learning (HARL)](https://github.com/PKU-MARL/HARL) model. The goal of this project is to explore how different serial cost-sharing taxation policies can regulate emission levels in the petroleum industry. By leveraging a multi-agent reinforcement learning approach, the study identifies key factors influencing firms’ economic viability while achieving environmental targets. The thesis document can be accessed in the `docs` folder.</p>*
 
 
 ## Table of Contents
@@ -24,6 +24,8 @@
 - [Contributing](#contributing)
 
 - [License](#license)
+
+- [Reference](#reference)
 
 
 ## Running the Project
@@ -129,6 +131,9 @@ Contributions are welcome! Please fork this repository and submit a pull request
 ## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
+
+## Reference
+Zhong, Y., Kuba, J. G., Feng, X., Hu, S., Ji, J., & Yang, Y. (2024). Heterogeneous-agent reinforcement learning. *Journal of Machine Learning Research*, 25(1-67), 1.
 
 ---
 
