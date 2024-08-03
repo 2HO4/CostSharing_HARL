@@ -1,20 +1,32 @@
-# **Global Warming Mitigation: An Empirical Multi-Agent Reinforcement Learning Approach**
 
-This project is part of a Bachelor's thesis for the Econometrics and Data Science programme, which aims to investigate the efficacy of serial cost-sharing taxation policies in regulating emission levels from petroleum industry production using a heterogeneous-agent reinforcement learning (HARL) model. The goal of this project is to explore how different serial cost-sharing taxation policies can regulate emission levels in the petroleum industry. By leveraging a multi-agent reinforcement learning approach, the study identifies key factors influencing firms’ economic viability while achieving environmental targets.
 
-The thesis document can be accessed in the `doc` folder.
+<p align="center"><img src="resources/logo/uva.png" alt="drawing" width="200"/></p>
+
+
+**<p style="text-align: center;font-size:2em;">Global Warming Mitigation:</p>**
+**<p style="text-align: center;font-size:2em;">An Empirical Multi-Agent Reinforcement Learning Approach</p>**
+
+___
+
+*<p style="text-align: justify;">This project is part of a Bachelor's thesis for the Econometrics and Data Science programme, which aims to investigate the efficacy of serial cost-sharing taxation policies in regulating emission levels from petroleum industry production using the advanced [Heterogeneous-Agent Reinforcement Learning (HARL)](https://github.com/PKU-MARL/HARL) model. The goal of this project is to explore how different serial cost-sharing taxation policies can regulate emission levels in the petroleum industry. By leveraging a multi-agent reinforcement learning approach, the study identifies key factors influencing firms’ economic viability while achieving environmental targets. The thesis document can be accessed in the `docs` folder.</p>*
 
 
 ## Table of Contents
-1. [Requirements](#requirements)
-2. [Running the Project](#running-the-project)
+- [Running the Project](#running-the-project)
   - [Google Colab](#google-colab)
   - [Local Machine / Container](#local-machine)
-3. [Extending the Project](#extending-the-project)
+    1. [Prerequisites](#1-prerequisites)
+    2. [Clone the Repository and Prepare the Project Environment](#2-clone-the-repository-and-prepare-the-project-environment)
+    3. [Train the Model](#3-train-the-model)
+    4. [Inspect the Ongoing Results](#4-inspect-the-ongoing-results)
+
+- [Extending the Project](#extending-the-project)
   - [Adding Custom Cost Functions](#adding-custom-cost-functions)
   - [Adding Custom Cost-Sharing Algorithms](#adding-custom-cost-sharing-algorithms)
-4. [Contributing](#contributing)
-5. [License](#license)
+
+- [Contributing](#contributing)
+
+- [License](#license)
 
 
 ## Running the Project
@@ -123,4 +135,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for more 
 
 ---
 
-For more details, refer to the thesis document in the `doc` folder. If you have any questions or issues, feel free to open an issue on GitHub.
+For more details, refer to the thesis document in the `docs` folder. If you have any questions or issues, feel free to open an issue on GitHub.
