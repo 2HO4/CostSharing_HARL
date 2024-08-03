@@ -3,9 +3,9 @@
 <p align="center"><img src="resources/logo/uva.png" alt="drawing" width="200"/></p>
 
 
-# **<p style="text-align: center;">Global Warming Mitigation: An Empirical Multi-Agent Reinforcement Learning Approach</p>**
+# **<p style="align: center;">Global Warming Mitigation: An Empirical Multi-Agent Reinforcement Learning Approach</p>**
 
-*<p style="text-align: justify;">This project is part of a Bachelor's thesis for the Econometrics and Data Science programme, which aims to investigate the efficacy of serial cost-sharing taxation policies in regulating emission levels from petroleum industry production using the advanced [Heterogeneous-Agent Reinforcement Learning (HARL)](https://github.com/PKU-MARL/HARL) model. The goal of this project is to explore how different serial cost-sharing taxation policies can regulate emission levels in the petroleum industry. By leveraging a multi-agent reinforcement learning approach, the study identifies key factors influencing firms’ economic viability while achieving environmental targets. The thesis document can be accessed in the `docs` folder.</p>*
+*<p style="align: justify;">This project is part of a Bachelor's thesis for the Econometrics and Data Science programme, which aims to investigate the efficacy of serial cost-sharing taxation policies in regulating emission levels from petroleum industry production using the advanced [Heterogeneous-Agent Reinforcement Learning (HARL)](https://github.com/PKU-MARL/HARL) model. The goal of this project is to explore how different serial cost-sharing taxation policies can regulate emission levels in the petroleum industry. By leveraging a multi-agent reinforcement learning approach, the study identifies key factors influencing firms’ economic viability while achieving environmental targets. The thesis document can be accessed in the `docs` folder.</p>*
 
 
 ## Table of Contents
