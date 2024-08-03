@@ -3,8 +3,8 @@
 <p align="center"><img src="resources/logo/uva.png" alt="drawing" width="200"/></p>
 
 
-**<p style="text-align: center;font-size:2em;">Global Warming Mitigation:</p>**
-**<p style="text-align: center;font-size:2em;">An Empirical Multi-Agent Reinforcement Learning Approach</p>**
+**<p style="text-align: center;font-size:20em;">Global Warming Mitigation:</p>**
+**<p style="text-align: center;font-size:20em;">An Empirical Multi-Agent Reinforcement Learning Approach</p>**
 
 ___
 
