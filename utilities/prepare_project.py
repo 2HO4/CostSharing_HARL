@@ -47,7 +47,7 @@ def main():
 
     elif args['venv'] in ['conda', 'mamba']:
         subprocess.run([args['venv'], 'env', 'create', '-f', 'environment.yml', '-p', '.venv'])
-        subprocess.run([args['venv'], 'activate', '.venv'])
+        subprocess.run([args['venv'], 'activate', './.venv'])
         subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
 
     elif args['venv'] == 'virtualenv':
